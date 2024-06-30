@@ -1,6 +1,6 @@
 ---
-title: "Sample Report - Data Science Capstone"
-author: "Nick Belgau"
+title: "Data Science Capstone - Principal Componenet Analysis"
+author: "Nick Belgau, Oscar"
 date: '`r Sys.Date()`'
 format:
   html:
@@ -19,7 +19,9 @@ editor:
 
 ## Introduction
 
-### What is "mehtod"?
+## Methods
+
+### Linear Algebra Deep Dive
 
 This is an introduction to LASSO regression, which is a non-parametric
 estimator that estimates the conditional expectation of two variables
@@ -33,11 +35,9 @@ The PCA [@daffertshofer2004pca]
 
 This is my work and I want to add more work...
 
-### Related work
+### PCA Assumptions
 
 This section is going to cover the literature review...
-
-## Methods
 
 The common non-parametric regression model is
 $Y_i = m(X_i) + \varepsilon_i$, where $Y_i$ can be defined as the sum of
@@ -60,9 +60,9 @@ $$
 y_i = \beta_0 + \beta_1 X_1 +\varepsilon_i
 $$
 
-## Analysis and Results
+## Applications: Analysis and Results
 
-### Data and Visualization
+### Application 1: General Dimensionality Reduction
 
 A study was conducted to determine how...
 
@@ -96,12 +96,16 @@ ggplot1 = murders %>% ggplot(mapping = aes(x=population/10^6, y=total))
 
 ```
 
-### Statistical Modeling
+### Application 2: Feature Extraction for ML
+
+### Application 3: Image Compression
+
+### Application 4: Statistical Modeling
 
 ```{r}
 
 ```
 
-### Conclusion
+## Conclusion
 
 ## References
