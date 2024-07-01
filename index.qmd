@@ -17,11 +17,12 @@ editor:
     wrap: 72
 ---
 
-## Introduction
+## Introduction (abstract?)
 
-### Significance
+Significance + scope of the paper
+PCA is best used when there is reason to believe that some underlying, latent factors explain the patterns in the data.
+After performing PCA, validate the practical utility of the reduced dimensions by applying them in downstream tasks such as clustering, classification, or regression. Check if the reduced data maintains or improves the performance of these tasks.
 
-### Scope of the Paper
 
 
 
@@ -32,7 +33,7 @@ editor:
 Mathematical underpinnings
 1. Standardize the data
 2. Compare covariance matrix
-3. Perform eigen decomposition or SVD. Each axis is orthogonal (no correlation)
+3. Perform eigen decomposition or SVD. Each axis is orthogonal (no correlation). This helps eliminate multicollinearity. May not hold true if original variables are statistically uncorrelated.
 4. Sort eigenvalues DESC, each is a principal component
 5. Create projection matrix and project onto new feature space
 
@@ -43,11 +44,46 @@ Cite this paper [@bro2014principal].
 
 ### PCA Assumptions
 
-1. Assume data can be represented as linear combinations of each other
+1. Assumption: Linearity
+Assume data is represented as linear combinations of each other.
+check for non-linear relationships by using visual methods and statistical methods.
+visually: correlation matrix where each 
 
+corr plot:
+```{r}SCATTER PLOT MATRICES: TO CHECK LINEARITY ASSUMPTION
+par(
+  col.axis="#8B814C", col.lab="#8B814C", col.main="#8B814C", col.sub="#8B814C", pch=20, col="#8B814C", bg="transparent"
+)
+DescTools::PlotPairs(sapply(conspiracy[,-9], function(x) jitter(x, 5)), 
+                     g=conspiracy$y,
+                     col=alpha("#8B814C", 0.1), 
+                     col.smooth="#8B814C")
+```
+If the plot shows nonlinear relationships, need to examine
+
+Look at distribution plots with overlayed mean=0 and std dev=1. and use it to example scaling.
+
+Can we use statistical tests for linearity like Breusch-Pagan test or the Randombow test.
+Or in practice do we use Pearson correlation coefficient?
+Can apply transformation to convert from a non-linear relationships, and reassess statistical test.
+
+Or use a different method like t-SNE or UMAp if PCA does not seem suitable
+
+
+2. Assumption: PC with the highest variance are the most informative.
+This is based on the idea that high variance directions capture more significant behaviors and structures in the data.
+Outliers or noise in the data can lead to misleading conclusions because they may not necessarily be the most 'informative' part of the data.
+
+
+Show what happens when you dont scale the data.
 
 ### Best Practices
 
+1. Preprocessing - Data scaling
+Assess the range, mean , and variance.
+Variables on larger scales can disproportionately influence the outcome. Standardie at mean = 0 variance = 1 Show what happens when you dont scale.
+
+2. Preprocessing - examine outliers
 
 ## Applications: Analysis and Results
 
@@ -56,7 +92,8 @@ Cite this paper [@bro2014principal].
 Screeplot
 Biplot
 
-In one of these applications, discuss how PCA aids in building more robust statistical models by reducing multicollinearity and enhancing model interpretability
+In one of these applications, discuss how PCA aids in building more robust statistical models by reducing multicollinearity and enhancing model interpretability.
+Compare VIF (variance inflation factor) before and after PCA.
 
 
 ### Application 2: Feature Extraction
@@ -64,7 +101,9 @@ continuation of application 1 but go into ML part
 
 ### Application 3: Image Compression
 
-New example. No scree plot or biplot because pixels.
+New example.
+Probably dont need to standardize the data. 
+No scree plot or biplot because pixels.
 Results to focus on memory reduction and maintaining equivalent level of performance.
 This will be similar to appl 1 + 2 but without going into as much detail for techniques already demonstrated.
 
