@@ -49,15 +49,11 @@ Assume data is represented as linear combinations of each other.
 check for non-linear relationships by using visual methods and statistical methods.
 visually: correlation matrix where each 
 
-corr plot:
+corr plot (pairs plot):
 ```{r}SCATTER PLOT MATRICES: TO CHECK LINEARITY ASSUMPTION
-par(
-  col.axis="#8B814C", col.lab="#8B814C", col.main="#8B814C", col.sub="#8B814C", pch=20, col="#8B814C", bg="transparent"
-)
-DescTools::PlotPairs(sapply(conspiracy[,-9], function(x) jitter(x, 5)), 
-                     g=conspiracy$y,
-                     col=alpha("#8B814C", 0.1), 
-                     col.smooth="#8B814C")
+
+
+
 ```
 If the plot shows nonlinear relationships, need to examine
 
@@ -119,20 +115,7 @@ Summary, reflections, future discissions
 
 ```{r, warning=FALSE, echo=TRUE}
 # Load Data
-kable(head(murders))
 
-ggplot1 = murders %>% ggplot(mapping = aes(x=population/10^6, y=total)) 
-
-  ggplot1 + geom_point(aes(col=region), size = 4) +
-  geom_text_repel(aes(label=abb)) +
-  scale_x_log10() +
-  scale_y_log10() +
-  geom_smooth(formula = "y~x", method=lm,se = F)+
-  xlab("Populations in millions (log10 scale)") + 
-  ylab("Total number of murders (log10 scale)") +
-  ggtitle("US Gun Murders in 2010") +
-  scale_color_discrete(name = "Region")+
-      theme_bw()
 ```
 
 $$
