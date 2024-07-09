@@ -17,6 +17,9 @@ editor:
     wrap: 72
 ---
 
+## Dataset Description
+https://github.com/nickbelgau/STA6257_PCA/blob/main/dataset_description.md
+
 ## Introduction
 
 Across diverse industries and data science applications, Principal Component Analysis (PCA) offers a powerful solution to extracting valuable insights from complex datasets. The primary objective of PCA is to reduce the number of dimensions in the dataset while retaining most of the original information. This is directly applicable to big data scenarios where it is not feasible to rely on univariate analysis to find patterns, and redundancy in the data leads to inflated standard errors and poor model stability [@rahayu2017application].  
