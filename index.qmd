@@ -1,6 +1,6 @@
 ---
-title: "Data Science Capstone - Principal Componenet Analysis"
-author: "Nick Belgau, Oscar"
+title: "Capstone - Principal Component Analysis"
+author: "Nick Belgau, Oscar Hernandez Mata"
 date: '`r Sys.Date()`'
 format:
   html:
@@ -17,11 +17,26 @@ editor:
     wrap: 72
 ---
 
-## Introduction (abstract?)
+## Introduction
 
-Significance + scope of the paper
-PCA is best used when there is reason to believe that some underlying, latent factors explain the patterns in the data.
-After performing PCA, validate the practical utility of the reduced dimensions by applying them in downstream tasks such as clustering, classification, or regression. Check if the reduced data maintains or improves the performance of these tasks.
+Across diverse industries and data science applications, Principal Component Analysis (PCA) offers a powerful solution to extracting valuable insights from complex datasets. The primary objective of PCA is to reduce the number of dimensions in the dataset while retaining most of the original information. This is directly applicable to big data scenarios where it is not feasible to rely on univariate analysis to find patterns, and redundancy in the data leads to inflated standard errors and poor model stability [@rahayu2017application].  
+
+Developed by Karl Pearson in 1901, PCA utilizes linear algebra to transform the original dataset to a lower dimensional vector space of uncorrelated variables known as principal components. These are linear combinations of the original variables, and represent the information in a new coordinate system with axes aligned to the directions of maximum variability [@joshi2020prediction]. Most of the data lies in this new feature subspace, where variance is used to measure the amount of information it contains. The quality of this subspace is assessed by comparing its variance to the total variance of the entire dataset, helping PCA identify the main structure in the data [@marukatat2023tutorial].  
+
+PCA is often used during exploratory data analysis because this technique enables graphical visualization of the dataset. This can reveal unexpected relationships between the original variables that would otherwise be challenging to identify [@johnson2023applied]. By reducing the dimensionality, PCA simplifies the data structure, making it easier to interpret and analyze. As a result, trends, patterns, and outliers can be identified in the new reduced-dimension dataset [@richardson2009pca].  
+
+Additionally, PCA is a powerful tool to address the curse of dimensionality and the main problem areas associated with high dimensionality: data sparsity, multicollinearity, and overfitting [@altman2018curse]. By projecting the data onto the principal components, the density of data points is increased in the new vector space which makes it easier to detect patterns and reduce noise. Multicollinearity is mitigated in the process because the principal components are uncorrelated to each other which improves stability and performance of the predictive models [@bharadiya2023tutorial]. With dimensionality reduction, models become simpler which improves generalization and reduces overfitting.  
+
+These benefits become valuable in many real-world applications, including image compression and signal processing. Lengthy image transfer over the internet can be improved by factoring image pixel matrices to extract the main patterns with minimal information loss [@ng2017pca]. For image processing tasks and particularly in edge-computing applications, PCA can file size by 60% with minimal information loss [@ali2024dimensionality]. This is especially useful for real-time quality control systems with deployed ML models in advanced manufacturing environments. For signal processing, PCA can be used to identify the underlying structure and relevant features in signals amongst the noise.  
+
+In machine learning pipelines, PCA is often employed because reducing the number of dimensions decreases computational complexity, lowers memory requirements, and enhances algorithm efficiency. Additionally, PCA's feature extraction capabilities allow for a better understanding and interpretation of the underlying data structure by identifying the most influential variables [@bharadiya2023tutorial]. It effectively filters out noise and irrelevant variations, enhancing the signal-to-noise ratio and improving the performance of subsequent analyses. Using PCA in both the training and deployment stages ensures consistent data transformation, maintains model stability, and boosts prediction speed by working with fewer, more informative features.  
+
+As with every technique, PCA has a few inherent limitations. It assumes linearity which means it may not capture complex nonlinear relationships in the data. However, modern variations such as kPCA seeks to address this [@marukatat2023tutorial]. Interpretability is another considerable downside because the resulting principal components are combinations of the original variables. PCA is also sensitive to outliers, which can distort the variance-covariance structure and affect the quality of dimensionality reduction. However, there have been improvements to address outlier sensitivity such as Robust PCA which decomposes the data into a low-rank matrix and sparse matrix to separate signal and noise [@bharadiya2023tutorial].  
+
+Additionally, PCA results in some degree of information loss, as the lower-dimensional representation will not retain all details from the original data. More specifically, in image compression, PCA can lead to loss of fine details and subtle features in images, especially when a high compression rate is applied. In addition, the computation of eigenvectors and eigenvalues, especially for large images, can be resource intensive and time-consuming [@do2012pca]. Lastly, selecting the optimal number of components to retain is subjective; choosing too few can lead to significant information loss, while choosing too many can lead to overfitting or unnecessary complexity.  
+
+Despite these drawbacks, PCA is crucial in data science for its ability to simplify complex datasets, reduce computational costs, and enhance the interpretability of data by focusing on the most significant features. It offers a powerful tool for improving model performance, reducing noise, and uncovering hidden patterns, making it indispensable for efficient and insightful data analysis.
+
 
 
 
