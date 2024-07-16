@@ -17,10 +17,6 @@ editor:
     wrap: 72
 ---
 
-## Dataset Description
-
-https://github.com/nickbelgau/STA6257_PCA/blob/main/dataset_description.md
-
 ## Introduction
 
 Across diverse industries and data science applications, Principal Component Analysis (PCA) offers a powerful solution to extracting valuable insights from complex datasets. The primary objective of PCA is to reduce the number of dimensions in the dataset while retaining most of the original information. This is directly applicable to big data scenarios where it is not feasible to rely on univariate analysis to find patterns, and redundancy in the data leads to inflated standard errors and poor model stability [@rahayu2017application].  
@@ -53,7 +49,7 @@ Principal Component Analysis (PCA) simplifies multivariate data by transforming 
 
 While different methods can be used to determine the principal components, Singular Value Decomposition (SVD) is the most common due to its computational efficiency and numerical stability which makes it a popular choice for popular programming packages. SVD decomposes the data into three simpler matrices, making it possible to handle large datasets effectively. This decomposition allows for a more straightforward calculation of the principal components without explicitly computing the covariance matrix, which can be computationally expensive and numerically unstable. The ability to handle sparse and dense matrices further enhances its versatility and efficiency in diverse applications. These advantages make SVD a preferred method in popular programming packages, ensuring that PCA is performed quickly and accurately.
 
-### Overview of steps using SVD:  
+### Overview of Algorithm with SVD:  
 
 1. **Standardize the data**  
    Ensure each variable contributes equally by having a mean of zero and variance of one. This requires that the variables are continuous.
@@ -84,6 +80,8 @@ While different methods can be used to determine the principal components, Singu
   where $V_{\text{selected}}$ contains the first number of components columns of $V$. Once the data is transformed onto the selected PC's, it is effectively reduced in dimensionality while retaining most of its original variability.
 
 
+
+
 ### Assumptions and Practical Testing  
 
 This section covers the primary assumptions of PCA and details how they can be tested in real-world applications. A more accurate name for this section might be *requirements* since the effectiveness of PCA relies on satisfying these points.
@@ -103,17 +101,248 @@ This section covers the primary assumptions of PCA and details how they can be t
 
 **Assumption**: There are three critical preprocessing steps: scaling, mean-centering, and outlier handling. Scaling standardizes the variance of each variable to ensure equal contributions. Mean-centering has a similar impact: ensuring that the principal components capture the true direction of maximum variance. Outliers can also distort the principal components, so they should be identified and handled appropriately. Together these methods prevent variables with larger measured values from dominating the principal components and skewing results.
 
-**Testing**: Data will usually not arrive in a condition that meets this requirement. Luckily, statistical packages in common programming languages offer simple methods to scale and mean-center data. Outliers can be detected using a variety of distribution plots, but automated methods could be employed for larger datasets which is beyond the scope of this paper. 
+**Testing**: Data will usually not arrive in a condition that meets this requirement. Luckily, statistical packages in common programming languages offer simple methods to scale and mean-center data. Outliers can be detected using a variety of distribution plots, but automated methods could be employed for larger datasets which is beyond the scope of this paper.  
+
+! need to add Varimax, and what loadings are 
 
 
 ## Applications: Analysis and Results
 
 ### Application 1: General Dimensionality Reduction
 
-Screeplot
+Load required ibaries:
+```{r}
+# List of packages to be installed
+# packages <- c("readxl", "skimr", "dplyr", "ggplot2", "GGally", 
+#               "corrplot", "scales", "DescTools", "reshape2", 
+#               "factoextra", "readr", "kableExtra", "rrcov", 
+#               "psych")
 
-corr plot (pairs plot):
-SCATTER PLOT MATRICES: TO CHECK LINEARITY ASSUMPTION
+# # Install the packages
+# install.packages(packages)
+
+# # Load the packages
+# lapply(packages, library, character.only = TRUE)
+
+library(readxl)
+library(skimr)
+library(dplyr)
+library(ggplot2)
+library(GGally)
+library(corrplot)
+library(scales)
+library(DescTools)
+library(reshape2)
+library(factoextra)
+library(readr)
+library(kableExtra)
+library(rrcov)
+library(psych)
+```
+
+```{r}
+
+Alz_mortality_data_complete_with_state_csv <- read_csv("data/Alz_mortality_data_complete_with_state_csv.csv")
+```
+
+1.  **Dataset Description**
+
+The dataset contains demographic, health, and environmental metrics for counties in Florida (FL) and Georgia (GA). Each row represents data for a specific county, and the selected columns are:
+
+- County: Name of the county.
+- State: State abbreviation (FL or GA).
+- obesity_age_adj: Age-adjusted obesity rate.
+- Smoking_Rate: Rate of smoking within the population.
+- physical_inactivity: Rate of physical inactivity.
+- Diabetes: Diabetes prevalence rate.
+- Heart_Disease: Heart disease prevalence rate.
+- Cancer: Cancer prevalence rate.
+- NATA_Cancer_11: National-Scale Air Toxics Assessment (NATA) cancer risk for 2011.
+- Poverty_Percent: Percentage of the population living below the poverty line.
+
+
+```{r}
+USHealth=Alz_mortality_data_complete_with_state_csv
+```
+
+```{r}
+unique_states <- unique(USHealth$State)
+
+print(unique_states)
+```
+
+```{r}
+skim(USHealth)
+```
+
+The dataset has 3109 observations and 66 variables.
+
+2.  **Filtered Dataset and Description**
+
+```{r}
+filtered_USHealth <- Alz_mortality_data_complete_with_state_csv %>%
+  filter(State %in% c("FL", "GA" )) %>%
+  select(County, State, obesity_age_adj, Smoking_Rate,
+         physical_inactivity, Diabetes, Heart_Disease, Cancer, NATA_Cancer_11, Poverty_Percent)
+```
+
+We filtered the dataset to analyze the variables obesity, smoking, physical inactivity, diabetes, heart disease, cancer, Nata Cancer, and poverty percentage in the southern states of Florida and Georgia.
+
+```{r}
+sapply(filtered_USHealth, class)
+```
+
+```{r}
+sapply(filtered_USHealth, function(x) length(unique(x)))
+```
+
+**Standardize the data**
+```{r}
+filtered_data <- filtered_USHealth %>%
+  select(-County, -State)
+filtered_data <- scale(filtered_data)
+```
+
+
+After filtering the dataset, our new dataset contains 226 observations and 10 variables.
+
+3.  **Correlation analysis**
+
+```{r}
+cor_matrix <- cor(filtered_data, use = "complete.obs")
+print(cor_matrix)
+```
+
+Most of the variables in our new dataset reveal a high correlation, which can prompt PCA to express them in a small number of principal components.
+
+4.  **Linarity Analysis**
+
+```{r}
+filtered_data <- as.data.frame(filtered_data)
+custom_plot <- ggpairs(
+  filtered_data,
+  upper = list(continuous = wrap("cor", size = 1.5, colour = "#4E4E50")), 
+  # Smaller correlation numbers
+  lower = list(continuous = wrap("points", alpha = 0.5, size = 0.8, colour = "#4E4E50")),
+  diag = list(continuous = wrap("barDiag", fill = "#4E4E50", colour = "#4E4E50")),
+  axisLabels = 'show'
+) +
+  theme(
+    panel.background = element_rect(fill = "white"), # Background of the plot
+    plot.background = element_rect(fill = "white"),  # Background of the panel
+    legend.background = element_rect(fill = "white"), # Background of the legend
+    panel.grid.major = element_blank(), # Major grid lines
+    panel.grid.minor = element_blank(), # Minor grid lines
+    axis.text = element_text(color = "#4E4E50", size = 6), # Smaller axis text
+    axis.title = element_text(color = "#4E4E50", size = 8), # Smaller axis titles
+    strip.background = element_rect(fill = "white"),
+    strip.text = element_text(color = "#4E4E50", size = 8) # Smaller variable names
+  )
+custom_plot
+```
+
+! Issues with code
+```{r}
+# par(col.axis="#8B814C", col.lab="#8B814C", col.main="#8B814C", col.sub="#8B814C", pch=20, col="#8B814C", bg="transparent")
+# DescTools::PlotPairs(sapply(filtered_data, function(x) jitter(x, 5)), 
+#                      g=filtered_data$Smoking_Rate,
+#                      col=scales::alpha("#8B814C", 0.1), 
+#                      col.smooth="#8B814C"
+#                      )
+```
+
+```{r}
+# # Convert the data to long format
+# melted_data <- melt(filtered_data)
+
+
+# # Define a function to create scatter plots with smooth lines
+# plot_pair <- function(df, x_var, y_var) {
+#   ggplot(df, aes_string(x = x_var, y = y_var)) +
+#     geom_point(alpha = 0.5) +
+#     geom_smooth(method = "loess", color = "#8B814C", se = FALSE) +
+#     theme_minimal() +
+#     labs(title = paste("Scatter Plot of", x_var, "vs", y_var),
+#          x = x_var,
+#          y = y_var)
+# }
+
+# # Get the variable names
+# vars <- colnames(filtered_data)
+
+# # Create scatter plots for each pair of variables
+# for (i in 1:(length(vars) - 1)) {
+#   for (j in (i + 1):length(vars)) {
+#     print(plot_pair(filtered_data, vars[i], vars[j]))
+#   }
+# }
+
+```
+
+The correlation matrix plots show enough of a relationship between variables to meet the assumption of linearity.
+
+5.  **Outliers analysis**
+
+```{r}
+melted_data <- melt(filtered_data)
+
+# Create boxplots for each variable
+ggplot(melted_data, aes(x = variable, y = value)) +
+  geom_boxplot(outlier.colour = "red", outlier.shape = 16, outlier.size = 2) +
+  theme_minimal() +
+  labs(title = "Boxplots for Each Variable",
+       x = "Variable",
+       y = "Value") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+6.  **Transformation and Outliers.**
+
+```{r}
+filtered_data_transformed <- log(filtered_data + 1)
+```
+
+```{r}
+melted_data2 <- melt(filtered_data_transformed)
+
+# Create boxplots for each variable
+ggplot(melted_data2, aes(x = variable, y = value)) +
+  geom_boxplot(outlier.colour = "red", outlier.shape = 16, outlier.size = 2) +
+  theme_minimal() +
+  labs(title = "Boxplots for Each Variable",
+       x = "Variable",
+       y = "Value") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+The dataset revealed some outliers, thus we conducted a log transformation to normalize the distribution making the dataset more suitable for analysis without the skewness caused by outliers.
+
+! there is an issue here!! too many data points removed
+
+7.  **PCA with Varimax Rotation results**
+
+```{r}
+# Perform PCA with Varimax rotation
+pca_with_rotation <- principal(filtered_data_transformed, nfactors = ncol(filtered_data_transformed), rotate = "varimax", scores = TRUE)
+
+# Summary of PCA with rotation
+print(pca_with_rotation)
+
+
+# Plot the proportion of variance explained
+fa.diagram(pca_with_rotation)
+
+
+```
+
+For PCA we conducted Varimax rotation, since it helps to get clearer and more distinct components that are easier to interpret by adjusting the loadings and maximizing the sum of variances of the squared loadings.
+
+
+
+
+
+Need to expand...  
+Screeplot
 ```{r}
 
 
@@ -122,7 +351,6 @@ SCATTER PLOT MATRICES: TO CHECK LINEARITY ASSUMPTION
 If the plot shows nonlinear relationships, need to examine
 
 Biplot
-
 In one of these applications, discuss how PCA aids in building more robust statistical models by reducing multicollinearity and enhancing model interpretability.
 Compare VIF (variance inflation factor) before and after PCA.
 
