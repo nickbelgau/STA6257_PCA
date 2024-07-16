@@ -35,7 +35,7 @@ These benefits become valuable in many real-world applications, including image 
 
 In machine learning pipelines, PCA is often employed because reducing the number of dimensions decreases computational complexity, lowers memory requirements, and enhances algorithm efficiency. Additionally, PCA's feature extraction capabilities allow for a better understanding and interpretation of the underlying data structure by identifying the most influential variables [@bharadiya2023tutorial]. It effectively filters out noise and irrelevant variations, enhancing the signal-to-noise ratio and improving the performance of subsequent analyses. Using PCA in both the training and deployment stages ensures consistent data transformation, maintains model stability, and boosts prediction speed by working with fewer, more informative features.  
 
-As with every technique, PCA has a few inherent limitations. It assumes linearity which means it may not capture complex nonlinear relationships in the data. However, modern variations such as kPCA seeks to address this [@marukatat2023tutorial]. Interpretability is another considerable downside because the resulting principal components are combinations of the original variables. PCA is also sensitive to outliers, which can distort the variance-covariance structure and affect the quality of dimensionality reduction. However, there have been improvements to address outlier sensitivity such as Robust PCA which decomposes the data into a low-rank matrix and sparse matrix to separate signal and noise [@bharadiya2023tutorial].  
+As with every technique, PCA has a few inherent limitations. It assumes linearity which means that if nonlinear relationships exist, PCA will not as effective because it may fail to capture the underlying structure in the data. However, modern variations such as Kernal PCA seeks to address this [@marukatat2023tutorial]. Interpretability is another considerable downside because the resulting principal components are combinations of the original variables. PCA is also sensitive to outliers, which can distort the variance-covariance structure and affect the quality of dimensionality reduction. However, there have been improvements to address outlier sensitivity such as Robust PCA which decomposes the data into a low-rank matrix and sparse matrix to separate signal and noise [@bharadiya2023tutorial].  
 
 Additionally, PCA results in some degree of information loss, as the lower-dimensional representation will not retain all details from the original data. More specifically, in image compression, PCA can lead to loss of fine details and subtle features in images, especially when a high compression rate is applied. In addition, the computation of eigenvectors and eigenvalues, especially for large images, can be resource intensive and time-consuming [@do2012pca]. Lastly, selecting the optimal number of components to retain is subjective; choosing too few can lead to significant information loss, while choosing too many can lead to overfitting or unnecessary complexity.  
 
@@ -45,76 +45,92 @@ Despite these drawbacks, PCA is crucial in data science for its ability to simpl
 
 
 
-## Methods
+## Methods  
 
-### Linear Algebra Foundations
+### Linear Algebra Foundations  
 
-Mathematical underpinnings
-1. Standardize the data
-2. Compare covariance matrix
-3. Perform eigen decomposition or SVD. Each axis is orthogonal (no correlation). This helps eliminate multicollinearity. May not hold true if original variables are statistically uncorrelated.
-4. Sort eigenvalues DESC, each is a principal component
-5. Create projection matrix and project onto new feature space
+Principal Component Analysis (PCA) simplifies multivariate data by transforming the original potentially correlated variables into a smaller set of uncorrelated variables called principal components. The aim of PCA is to reduce the dataset's dimensionality while preserving as much variability as possible. Because the variables will often have different scales or units, standardization is crucial to ensure each variable contributes equally to the analysis. Principal components are obtained by identifying the directions of maximum variability in the data. These components are orthogonal and uncorrelated, with each one capturing a specific amount of the data's variance. This process creates a new coordinate system that simplifies the data structure while retaining its essential characteristics (Richardson 2009; Johnson & Wichern 2023).
 
-Computations techniques. methods for computing PCA like SVD
+While different methods can be used to determine the principal components, Singular Value Decomposition (SVD) is the most common due to its computational efficiency and numerical stability which makes it a popular choice for popular programming packages. SVD decomposes the data into three simpler matrices, making it possible to handle large datasets effectively. This decomposition allows for a more straightforward calculation of the principal components without explicitly computing the covariance matrix, which can be computationally expensive and numerically unstable. The ability to handle sparse and dense matrices further enhances its versatility and efficiency in diverse applications. These advantages make SVD a preferred method in popular programming packages, ensuring that PCA is performed quickly and accurately.
 
-Cite this paper [@bro2014principal]. 
+### Overview of steps using SVD:  
 
+1. **Standardize the data**  
+   Ensure each variable contributes equally by having a mean of zero and variance of one. This requires that the variables are continuous.
+   $$
+   X_{\text{standardized}} = \frac{X - \mu}{\sigma}
+   $$
+   $\mu$: mean, $\sigma$: standard deviation of each variable
 
-### PCA Assumptions
+2. **Perform Singular Value Decomposition (SVD)**  
+  Decompose the standardized data matrix into three matrices $U$, $\Sigma$, and $V^T$.
+  $$
+  X_{\text{standardized}} = U \Sigma V^T
+  $$
+  $𝑈$ and $V^T$ are orthogonal matrices, so therefore $U$ and $V$ are also orthogonal. The diagonal matrix of singular values is represented by $\sigma$ with values $\sigma_i$ that are naturally sorted in descending order. Each column of $𝑉$ represents a principal component (PC) which are orthogonal to each other in the transformed feature space. The number of PC's initially generated are equivalent to the number of variables initially provided in the dataset.
 
-1. Assumption: Linearity
-Assume data is represented as linear combinations of each other.
-check for non-linear relationships by using visual methods and statistical methods.
-visually: correlation matrix where each 
+3. **Selection of principal components**  
+  The explained variance of each PC is represented by:
+  $$
+  \text{variance\_explained} = \frac{\sigma_i^2}{\sum \sigma_i^2}
+  $$
+  For each singular value $\sigma_i$ in the matrix of singular values $\Sigma$, compute $\sigma_i^2$ and calculate the individual variance. The cumulative explained variance target is specified (typically 95%) as a criteria for PC selection. Determine the number of components needs to reach the desired cumulative explained variance.
 
-corr plot (pairs plot):
-```{r}SCATTER PLOT MATRICES: TO CHECK LINEARITY ASSUMPTION
-
-
-
-```
-If the plot shows nonlinear relationships, need to examine
-
-Look at distribution plots with overlayed mean=0 and std dev=1. and use it to example scaling.
-
-Can we use statistical tests for linearity like Breusch-Pagan test or the Randombow test.
-Or in practice do we use Pearson correlation coefficient?
-Can apply transformation to convert from a non-linear relationships, and reassess statistical test.
-
-Or use a different method like t-SNE or UMAp if PCA does not seem suitable
-
-
-2. Assumption: PC with the highest variance are the most informative.
-This is based on the idea that high variance directions capture more significant behaviors and structures in the data.
-Outliers or noise in the data can lead to misleading conclusions because they may not necessarily be the most 'informative' part of the data.
+4. **Transform the data**  
+  Project the standardized data onto the selected principal components.
+  $$
+  X_{\text{transformed}} = X_{\text{standardized}} V_{\text{selected}}
+  $$
+  where $V_{\text{selected}}$ contains the first number of components columns of $V$. Once the data is transformed onto the selected PC's, it is effectively reduced in dimensionality while retaining most of its original variability.
 
 
-Show what happens when you dont scale the data.
+### Assumptions and Practical Testing  
 
-### Best Practices
+This section covers the primary assumptions of PCA and details how they can be tested in real-world applications. A more accurate name for this section might be *requirements* since the effectiveness of PCA relies on satisfying these points.
 
-1. Preprocessing - Data scaling
-Assess the range, mean , and variance.
-Variables on larger scales can disproportionately influence the outcome. Standardie at mean = 0 variance = 1 Show what happens when you dont scale.
+#### 1. Linearity
+**Assumption**: PCA assumes that resulting principal components are linear combinations of the original variables. Nonlinear relationships may lead to low covariance values which can lead to an undervalued representation of their signficance.
 
-2. Preprocessing - examine outliers
+**Testing**: Initial checks with scatter plots and correlation matrices can help identify linear relationships between variable pairs. While common, these methods require manual inspection which introduces the potential for the researcher to miss subtler non-linear patterns. Supplementing with statistical tests for linearity can provide a more robust assessment. Transformations can be applied to specific non-linear variables or alternative PCA methods can be utilized such as Kernal PCA [@marukatat2023tutorial].
+
+
+##### 2. Continuous data
+**Assumption**: To calculate principal components, data should be on a continuous scale: either interval or ratio. It should be mentioned that despite being ordinal, Likert Scales are often used because the distance between scale points are assumed to be approximately equivalent.  
+
+**Testing**: Reviewing column data types and value counts are practical methods for testing. Simple transformations can be applied to categorical data.
+
+#### 3. Data standardization 
+
+**Assumption**: There are three critical preprocessing steps: scaling, mean-centering, and outlier handling. Scaling standardizes the variance of each variable to ensure equal contributions. Mean-centering has a similar impact: ensuring that the principal components capture the true direction of maximum variance. Outliers can also distort the principal components, so they should be identified and handled appropriately. Together these methods prevent variables with larger measured values from dominating the principal components and skewing results.
+
+**Testing**: Data will usually not arrive in a condition that meets this requirement. Luckily, statistical packages in common programming languages offer simple methods to scale and mean-center data. Outliers can be detected using a variety of distribution plots, but automated methods could be employed for larger datasets which is beyond the scope of this paper. 
+
 
 ## Applications: Analysis and Results
 
 ### Application 1: General Dimensionality Reduction
 
 Screeplot
+
+corr plot (pairs plot):
+SCATTER PLOT MATRICES: TO CHECK LINEARITY ASSUMPTION
+```{r}
+
+
+
+```
+If the plot shows nonlinear relationships, need to examine
+
 Biplot
 
 In one of these applications, discuss how PCA aids in building more robust statistical models by reducing multicollinearity and enhancing model interpretability.
 Compare VIF (variance inflation factor) before and after PCA.
 
 
-### Application 2: Feature Extraction
+### Application 2: Feature Extraction  
 continuation of application 1 but go into ML part
 
-### Application 3: Image Compression
+### Application 3: Image Compression  
 
 New example.
 Probably dont need to standardize the data. 
@@ -122,21 +138,7 @@ No scree plot or biplot because pixels.
 Results to focus on memory reduction and maintaining equivalent level of performance.
 This will be similar to appl 1 + 2 but without going into as much detail for techniques already demonstrated.
 
-## Conclusion
+## Conclusion  
 
 Summary, reflections, future discissions
 
-## References
-
-
-
-
-
-```{r, warning=FALSE, echo=TRUE}
-# Load Data
-
-```
-
-$$
-y_i = \beta_0 + \beta_1 X_1 +\varepsilon_i
-$$
