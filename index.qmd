@@ -45,7 +45,7 @@ Despite these drawbacks, PCA is crucial in data science for its ability to simpl
 
 ### Linear Algebra Foundations  
 
-Principal Component Analysis (PCA) simplifies multivariate data by transforming the original potentially correlated variables into a smaller set of uncorrelated variables called principal components. The aim of PCA is to reduce the dataset's dimensionality while preserving as much variability as possible. Because the variables will often have different scales or units, standardization is crucial to ensure each variable contributes equally to the analysis. Principal components are obtained by identifying the directions of maximum variability in the data. These components are orthogonal and uncorrelated, with each one capturing a specific amount of the data's variance. This process creates a new coordinate system that simplifies the data structure while retaining its essential characteristics (Richardson 2009; Johnson & Wichern 2023).
+Principal Component Analysis (PCA) simplifies multivariate data by transforming the original potentially correlated variables into a smaller set of uncorrelated variables called principal components. The aim of PCA is to reduce the dataset's dimensionality while preserving as much variability as possible. Because the variables will often have different scales or units, standardization is crucial to ensure each variable contributes equally to the analysis. Principal components are obtained by identifying the directions of maximum variability in the data. These components are orthogonal and uncorrelated, with each one capturing a specific amount of the data's variance. This process creates a new coordinate system that simplifies the data structure while retaining its essential characteristics [@johnson2023applied].
 
 While different methods can be used to determine the principal components, Singular Value Decomposition (SVD) is the most common due to its computational efficiency and numerical stability which makes it a popular choice for popular programming packages. SVD decomposes the data into three simpler matrices, making it possible to handle large datasets effectively. This decomposition allows for a more straightforward calculation of the principal components without explicitly computing the covariance matrix, which can be computationally expensive and numerically unstable. The ability to handle sparse and dense matrices further enhances its versatility and efficiency in diverse applications. These advantages make SVD a preferred method in popular programming packages, ensuring that PCA is performed quickly and accurately.
 
@@ -109,21 +109,8 @@ This section covers the primary assumptions of PCA and details how they can be t
 ## Applications: Analysis and Results
 
 ### Application 1: General Dimensionality Reduction
-
 Load required ibaries:
 ```{r}
-# List of packages to be installed
-# packages <- c("readxl", "skimr", "dplyr", "ggplot2", "GGally", 
-#               "corrplot", "scales", "DescTools", "reshape2", 
-#               "factoextra", "readr", "kableExtra", "rrcov", 
-#               "psych")
-
-# # Install the packages
-# install.packages(packages)
-
-# # Load the packages
-# lapply(packages, library, character.only = TRUE)
-
 library(readxl)
 library(skimr)
 library(dplyr)
@@ -138,11 +125,6 @@ library(readr)
 library(kableExtra)
 library(rrcov)
 library(psych)
-```
-
-```{r}
-
-Alz_mortality_data_complete_with_state_csv <- read_csv("data/Alz_mortality_data_complete_with_state_csv.csv")
 ```
 
 1.  **Dataset Description**
@@ -160,15 +142,13 @@ The dataset contains demographic, health, and environmental metrics for counties
 - NATA_Cancer_11: National-Scale Air Toxics Assessment (NATA) cancer risk for 2011.
 - Poverty_Percent: Percentage of the population living below the poverty line.
 
-
 ```{r}
-USHealth=Alz_mortality_data_complete_with_state_csv
+USHealth <- read_csv("data/Alz_mortality_data_complete_with_state_csv.csv")
 ```
 
-```{r}
-unique_states <- unique(USHealth$State)
 
-print(unique_states)
+```{r}
+unique(USHealth$State)
 ```
 
 ```{r}
@@ -180,7 +160,7 @@ The dataset has 3109 observations and 66 variables.
 2.  **Filtered Dataset and Description**
 
 ```{r}
-filtered_USHealth <- Alz_mortality_data_complete_with_state_csv %>%
+filtered_USHealth <- USHealth %>%
   filter(State %in% c("FL", "GA" )) %>%
   select(County, State, obesity_age_adj, Smoking_Rate,
          physical_inactivity, Diabetes, Heart_Disease, Cancer, NATA_Cancer_11, Poverty_Percent)
