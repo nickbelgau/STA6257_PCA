@@ -143,44 +143,48 @@ The dataset contains demographic, health, and environmental metrics for counties
 - Poverty_Percent: Percentage of the population living below the poverty line.
 
 ```{r}
-USHealth <- read_csv("data/Alz_mortality_data_complete_with_state_csv.csv")
+data_raw <- read_csv("data/Alz_mortality_data_complete_with_state_csv.csv")
 ```
 
-
-```{r}
-unique(USHealth$State)
-```
-
-```{r}
-skim(USHealth)
-```
 
 The dataset has 3109 observations and 66 variables.
 
 2.  **Filtered Dataset and Description**
 
 ```{r}
-filtered_USHealth <- USHealth %>%
-  filter(State %in% c("FL", "GA" )) %>%
-  select(County, State, obesity_age_adj, Smoking_Rate,
-         physical_inactivity, Diabetes, Heart_Disease, Cancer, NATA_Cancer_11, Poverty_Percent)
+selected_columns <- c(
+  "County", "State", "alz_ageadj_rate", "mental_distress", "Med_age", "sixtyfiveandup", "obesity_age_adj", "Smoking_Rate", "physical_inactivity", "Diabetes", "Heart_Disease", "Cancer", "Glyphosates", "NATA_Cancer_11", "Fine_PM_2_5", "Mercury_TPY", "Lead_TPY", "Percent_Less_than_HS", "Percent_with_Bachelors", "Pop_Dens", "per_rural", "Food_index", "Households_2up", "Household_3up", "Household_4up", "Poverty_Percent", "Atrazine_High_KG", "SUNLIGHT", "NATA_resp_11", "age_rate", "Gly_sqkm"
+)
+
+data <- USHealth %>%
+  filter(State %in% c("FL")) %>%
+  select(all_of(selected_columns))
+
+data <- data %>%
+  select(-County, -State)
 ```
 
-We filtered the dataset to analyze the variables obesity, smoking, physical inactivity, diabetes, heart disease, cancer, Nata Cancer, and poverty percentage in the southern states of Florida and Georgia.
+We filtered the dataset to analyze selected variables in the southern state of Florida. We remove the columns to denote which county and state the data is from.
+Columns were selected to remove demographic fields related to gender, sex, and race and ambigious fields related to grouping.
+
 
 ```{r}
-sapply(filtered_USHealth, class)
+sapply(data, class)
 ```
 
 ```{r}
-sapply(filtered_USHealth, function(x) length(unique(x)))
+sapply(data, function(x) length(unique(x)))
 ```
+
+Cursory check to inspect nulls and scales.
+```{r}
+skim(data)
+```
+We note that [mental_distress] is ordinal but we will treat it as continuous.  
 
 **Standardize the data**
 ```{r}
-filtered_data <- filtered_USHealth %>%
-  select(-County, -State)
-filtered_data <- scale(filtered_data)
+data <- scale(data)
 ```
 
 
@@ -189,8 +193,8 @@ After filtering the dataset, our new dataset contains 226 observations and 10 va
 3.  **Correlation analysis**
 
 ```{r}
-cor_matrix <- cor(filtered_data, use = "complete.obs")
-print(cor_matrix)
+cor_matrix <- cor(data, use = "complete.obs")
+# print(cor_matrix)
 ```
 
 Most of the variables in our new dataset reveal a high correlation, which can prompt PCA to express them in a small number of principal components.
@@ -198,9 +202,10 @@ Most of the variables in our new dataset reveal a high correlation, which can pr
 4.  **Linarity Analysis**
 
 ```{r}
-filtered_data <- as.data.frame(filtered_data)
+data <- as.data.frame(data)
+
 custom_plot <- ggpairs(
-  filtered_data,
+  data,
   upper = list(continuous = wrap("cor", size = 1.5, colour = "#4E4E50")), 
   # Smaller correlation numbers
   lower = list(continuous = wrap("points", alpha = 0.5, size = 0.8, colour = "#4E4E50")),
@@ -218,6 +223,7 @@ custom_plot <- ggpairs(
     strip.background = element_rect(fill = "white"),
     strip.text = element_text(color = "#4E4E50", size = 8) # Smaller variable names
   )
+
 custom_plot
 ```
 
@@ -302,15 +308,15 @@ The dataset revealed some outliers, thus we conducted a log transformation to no
 7.  **PCA with Varimax Rotation results**
 
 ```{r}
-# Perform PCA with Varimax rotation
-pca_with_rotation <- principal(filtered_data_transformed, nfactors = ncol(filtered_data_transformed), rotate = "varimax", scores = TRUE)
+# # Perform PCA with Varimax rotation
+# pca_with_rotation <- principal(filtered_data_transformed, nfactors = ncol(filtered_data_transformed), rotate = "varimax", scores = TRUE)
 
-# Summary of PCA with rotation
-print(pca_with_rotation)
+# # Summary of PCA with rotation
+# print(pca_with_rotation)
 
 
-# Plot the proportion of variance explained
-fa.diagram(pca_with_rotation)
+# # Plot the proportion of variance explained
+# fa.diagram(pca_with_rotation)
 
 
 ```
