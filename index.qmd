@@ -125,6 +125,8 @@ library(readr)
 library(kableExtra)
 library(rrcov)
 library(psych)
+library(scales)
+library(ggfortify)
 ```
 
 1.  **Dataset Description**
@@ -143,212 +145,168 @@ The dataset contains demographic, health, and environmental metrics for counties
 - Poverty_Percent: Percentage of the population living below the poverty line.
 
 ```{r}
-url <- "https://raw.githubusercontent.com/nickbelgau/STA6257_PCA/main/data/Alz_mortality_data_complete_with_state_csv%20-%20Copy.csv"
+url <- "https://raw.githubusercontent.com/nickbelgau/STA6257_PCA/main/data/Alz_mortality_data_complete_with_state_csv.csv"
 data_raw <- read_csv(url)
 ```
 
 
 The dataset has 3109 observations and 66 variables.
 
-2.  **Filtered Dataset and Description**
+2.  **Filtered Dataset and Inspection**
 
 ```{r}
 selected_columns <- c(
-  "County", "State", "mental_distress", "obesity_age_adj", "Smoking_Rate", "physical_inactivity", "Diabetes", "Heart_Disease", "Cancer", "NATA_Cancer_11", "Glyphosates", "Fine_PM_2_5", "Mercury_TPY", "Lead_TPY", "per_rural", "Food_index", "Poverty_Percent", "Atrazine_High_KG", "SUNLIGHT"
+  "County", "State", "obesity_age_adj", "Smoking_Rate", "physical_inactivity", "Diabetes", "Heart_Disease", "Cancer", "Glyphosates", "Fine_PM_2_5", "Mercury_TPY", "Lead_TPY", "per_rural", "Food_index", "Poverty_Percent", "Atrazine_High_KG", "SUNLIGHT"
 )
 
-data <- USHealth %>%
-  filter(State %in% c("FL")) %>%
+deep_south_states <- c("AL", "AR", "FL", "GA", "LA", "MS", "NC", "SC", "TN", "TX", "VA")
+
+data <- data_raw %>%
+  filter(State %in% deep_south_states) %>%
   select(all_of(selected_columns))
 
 data <- data %>%
   select(-County, -State)
 ```
 
-We filtered the dataset to analyze selected variables in the southern state of Florida. We remove the columns to denote which county and state the data is from.
+We filtered the dataset to analyze selected variables for states in the deep south. We remove the columns to denote which county and state the data is from to create one complete dataset for the region.  
+
 Columns were selected to remove demographic fields related to gender, sex, and race and ambigious fields related to grouping.
 
 
+Perform a series of checks to inspect for continuous variables, a requirement of effective PCA.
 ```{r}
 sapply(data, class)
 ```
+Data types are "numeric" which is a good indication.
 
 ```{r}
 sapply(data, function(x) length(unique(x)))
 ```
+The columns have a significant amount of unique values which is further indication.
 
 Cursory check to inspect nulls and scales.
 ```{r}
 skim(data)
 ```
-We note that [mental_distress] is ordinal but we will treat it as continuous.  
 
 **Standardize the data**
 ```{r}
 data <- scale(data)
 ```
 
-
-After filtering the dataset, our new dataset contains 226 observations and 10 variables.
-
-3.  **Correlation analysis**
+3.  **Correlation and Linarity Analysis**
 
 ```{r}
-cor_matrix <- cor(data, use = "complete.obs")
-# print(cor_matrix)
+# data <- as.data.frame(data)
+
+# par(col.axis="#8B814C", col.lab="#8B814C", col.main="#8B814C", col.sub="#8B814C", pch=20, col="#8B814C", bg="transparent", cex=0.8)
+
+# DescTools::PlotPairs(sapply(data, function(x) jitter(x, 5)) ,
+#                      diag.panel = panel.hist,
+#                      lower.panel = panel.smooth,
+#                      upper.panel = panel.smooth,
+# )
+
 ```
 
-Most of the variables in our new dataset reveal a high correlation, which can prompt PCA to express them in a small number of principal components.
-
-4.  **Linarity Analysis**
-
+Heatmap
 ```{r}
-data <- as.data.frame(data)
+library(corrplot)
 
-custom_plot <- ggpairs(
-  data,
-  upper = list(continuous = wrap("cor", size = 1.5, colour = "#4E4E50")), 
-  # Smaller correlation numbers
-  lower = list(continuous = wrap("points", alpha = 0.5, size = 0.8, colour = "#4E4E50")),
-  diag = list(continuous = wrap("barDiag", fill = "#4E4E50", colour = "#4E4E50")),
-  axisLabels = 'show'
-) +
-  theme(
-    panel.background = element_rect(fill = "white"), # Background of the plot
-    plot.background = element_rect(fill = "white"),  # Background of the panel
-    legend.background = element_rect(fill = "white"), # Background of the legend
-    panel.grid.major = element_blank(), # Major grid lines
-    panel.grid.minor = element_blank(), # Minor grid lines
-    axis.text = element_text(color = "#4E4E50", size = 6), # Smaller axis text
-    axis.title = element_text(color = "#4E4E50", size = 8), # Smaller axis titles
-    strip.background = element_rect(fill = "white"),
-    strip.text = element_text(color = "#4E4E50", size = 8) # Smaller variable names
-  )
+cor_matrix <- cor(data, use = "complete.obs")  # Handles missing values by using complete observations
 
-custom_plot
+color_palette <- colorRampPalette(c("#215B9D", "#DCE6F1", "#215B9D"))(200) # blue
+
+corrplot(abs(cor_matrix), method = "color",
+        #  type = "lower", 
+         order = "hclust",
+         addCoef.col = "#36454F",
+         number.cex = 0.50,
+         tl.col = "black",
+         tl.srt = 45,  # No rotation for text labels
+        #  tl.pos = "d",  # Position text labels at the bottom (x-axis)
+         cl.pos = "n",  # No color legend
+         col = color_palette,
+         bg = "white"
+)
 ```
 
-! Issues with code
-```{r}
-# par(col.axis="#8B814C", col.lab="#8B814C", col.main="#8B814C", col.sub="#8B814C", pch=20, col="#8B814C", bg="transparent")
-# DescTools::PlotPairs(sapply(filtered_data, function(x) jitter(x, 5)), 
-#                      g=filtered_data$Smoking_Rate,
-#                      col=scales::alpha("#8B814C", 0.1), 
-#                      col.smooth="#8B814C"
-#                      )
-```
 
 ```{r}
-# # Convert the data to long format
-# melted_data <- melt(filtered_data)
-
-
-# # Define a function to create scatter plots with smooth lines
-# plot_pair <- function(df, x_var, y_var) {
-#   ggplot(df, aes_string(x = x_var, y = y_var)) +
-#     geom_point(alpha = 0.5) +
-#     geom_smooth(method = "loess", color = "#8B814C", se = FALSE) +
-#     theme_minimal() +
-#     labs(title = paste("Scatter Plot of", x_var, "vs", y_var),
-#          x = x_var,
-#          y = y_var)
-# }
-
-# # Get the variable names
-# vars <- colnames(filtered_data)
-
-# # Create scatter plots for each pair of variables
-# for (i in 1:(length(vars) - 1)) {
-#   for (j in (i + 1):length(vars)) {
-#     print(plot_pair(filtered_data, vars[i], vars[j]))
-#   }
-# }
-
+# ggpairs(data)
 ```
 
 The correlation matrix plots show enough of a relationship between variables to meet the assumption of linearity.
 
-5.  **Outliers analysis**
+4.  **Outliers analysis**
 
 ```{r}
-melted_data <- melt(filtered_data)
+# melted_data <- melt(filtered_data)
 
-# Create boxplots for each variable
-ggplot(melted_data, aes(x = variable, y = value)) +
-  geom_boxplot(outlier.colour = "red", outlier.shape = 16, outlier.size = 2) +
-  theme_minimal() +
-  labs(title = "Boxplots for Each Variable",
-       x = "Variable",
-       y = "Value") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# # Create boxplots for each variable
+# ggplot(melted_data, aes(x = variable, y = value)) +
+#   geom_boxplot(outlier.colour = "red", outlier.shape = 16, outlier.size = 2) +
+#   theme_minimal() +
+#   labs(title = "Boxplots for Each Variable",
+#        x = "Variable",
+#        y = "Value") +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-6.  **Transformation and Outliers.**
+
+5.  **Run Principal Component Analysis**
 
 ```{r}
-filtered_data_transformed <- log(filtered_data + 1)
+pca_result <- prcomp(data, center = TRUE, scale. = TRUE)
+
+pca_summary <- summary(pca_result)
+importance <- as.data.frame(pca_summary$importance)
+importance <- t(importance) # transpose to make cleaner
+colnames(importance) <- c("Std Dev", "Proportion", "Cumulative Var")
+importance
 ```
 
+View the PCA components (loadings)
 ```{r}
-melted_data2 <- melt(filtered_data_transformed)
-
-# Create boxplots for each variable
-ggplot(melted_data2, aes(x = variable, y = value)) +
-  geom_boxplot(outlier.colour = "red", outlier.shape = 16, outlier.size = 2) +
-  theme_minimal() +
-  labs(title = "Boxplots for Each Variable",
-       x = "Variable",
-       y = "Value") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+# pca_result$rotation
 ```
 
-The dataset revealed some outliers, thus we conducted a log transformation to normalize the distribution making the dataset more suitable for analysis without the skewness caused by outliers.
-
-! there is an issue here!! too many data points removed
-
-7.  **PCA with Varimax Rotation results**
-
-```{r}
-# # Perform PCA with Varimax rotation
-# pca_with_rotation <- principal(filtered_data_transformed, nfactors = ncol(filtered_data_transformed), rotate = "varimax", scores = TRUE)
-
-# # Summary of PCA with rotation
-# print(pca_with_rotation)
-
-
-# # Plot the proportion of variance explained
-# fa.diagram(pca_with_rotation)
-
-
-```
-
-For PCA we conducted Varimax rotation, since it helps to get clearer and more distinct components that are easier to interpret by adjusting the loadings and maximizing the sum of variances of the squared loadings.
-
-
-
-
-
-Need to expand...  
 Screeplot
 ```{r}
-
-
-
+plot(pca_result, type = "l", col = "#215B9D", lwd = 2)
 ```
-If the plot shows nonlinear relationships, need to examine
+Elbow method
+
+note: from library (ggfortify::autoplot)
 
 Biplot
+```{r}
+# biplot(pca_result, 
+#        col = c("grey", "#215B9D"), #"#D3D3D3"
+#        cex = 0.3,
+#        arrow.len = 0.15,              # Length of arrows (default is 0.1)
+#        main = "PCA Biplot")  
+
+autoplot(pca_result, 
+         data = data,
+         colour = 'grey',  # Color for points
+         loadings = TRUE,  # Show loadings
+         loadings.colour = '#215B9D',  # Color for arrows
+         loadings.label = TRUE,  # Show labels for loadings
+         loadings.label.colour = 'black', 
+         loadings.label.size = 3) +  # Increase the size of the labels
+  theme_minimal() +  # Use a minimal theme for cleaner appearance
+  theme(legend.position = "none")  # Remove legend for simplicity
+```
 In one of these applications, discuss how PCA aids in building more robust statistical models by reducing multicollinearity and enhancing model interpretability.
 Compare VIF (variance inflation factor) before and after PCA.
 
 
-### Application 2: Feature Extraction  
-continuation of application 1 but go into ML part
 
-### Application 3: Image Compression  
+### Application 2: Image Compression  
 
 New example.
-Probably dont need to standardize the data. 
 No scree plot or biplot because pixels.
 Results to focus on memory reduction and maintaining equivalent level of performance.
 This will be similar to appl 1 + 2 but without going into as much detail for techniques already demonstrated.
