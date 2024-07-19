@@ -147,10 +147,11 @@ The dataset contains demographic, health, and environmental metrics for counties
 ```{r}
 url <- "https://raw.githubusercontent.com/nickbelgau/STA6257_PCA/main/data/Alz_mortality_data_complete_with_state_csv.csv"
 data_raw <- read_csv(url)
+
+nrow(data)
+ncol(data)
 ```
 
-
-The dataset has 3109 observations and 66 variables.
 
 2.  **Filtered Dataset and Inspection**
 
