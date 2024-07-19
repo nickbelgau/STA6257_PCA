@@ -147,9 +147,6 @@ The dataset contains demographic, health, and environmental metrics for counties
 ```{r}
 url <- "https://raw.githubusercontent.com/nickbelgau/STA6257_PCA/main/data/Alz_mortality_data_complete_with_state_csv.csv"
 data_raw <- read_csv(url)
-
-nrow(data)
-ncol(data)
 ```
 
 
@@ -157,7 +154,7 @@ ncol(data)
 
 ```{r}
 selected_columns <- c(
-  "County", "State", "obesity_age_adj", "Smoking_Rate", "physical_inactivity", "Diabetes", "Heart_Disease", "Cancer",  "Mercury_TPY", "Lead_TPY", "Food_index", "Poverty_Percent", "Atrazine_High_KG", "SUNLIGHT"
+  "County", "State", "obesity_age_adj", "Smoking_Rate", "Diabetes", "Heart_Disease", "Cancer",  "Mercury_TPY", "Lead_TPY", "Food_index", "Poverty_Percent", "Atrazine_High_KG", "SUNLIGHT"
 )
 
 deep_south_states <- c("AL", "AR", "FL", "GA", "LA", "MS", "NC", "SC", "TN", "TX", "VA")
@@ -258,8 +255,9 @@ The correlation matrix plots show enough of a relationship between variables to 
 
 5.  **Run Principal Component Analysis**
 
+The data was scaled previously which also accomplishes mean-centering, so we do not need to specify additional parameters in the prcomp() function to scale or center again. 
 ```{r}
-pca_result <- prcomp(data, center = TRUE, scale. = TRUE)
+pca_result <- prcomp(data)
 
 pca_summary <- summary(pca_result)
 importance <- as.data.frame(pca_summary$importance)
@@ -267,6 +265,7 @@ importance <- t(importance) # transpose to make cleaner
 colnames(importance) <- c("Std Dev", "Proportion", "Cumulative Var")
 importance
 ```
+The target of 95% cumulative variance is maintained with the first 9 principal components, indicating a minor improvement in dimensionality reduction. Ideally, closer to 95% variance with fewer dimensions would be preferable, but this was not achieved in this case. It is still valuable to implement PCA despite the minor improvement.
 
 View the PCA components (loadings)
 ```{r}
@@ -279,16 +278,13 @@ plot(pca_result, type = "l", col = "#215B9D", lwd = 2)
 ```
 Elbow method
 
-note: from library (ggfortify::autoplot)
 
-Biplot
+Biplot  
+Instead of printing the loadings in a tabular format, it can be helpful to leverage a biplot to visually reveal the individual contributions. The points on the graph are the original data points projected on the first two principal component axes. The vectors (or arrows) are the contribution of each of the original variables to the principal components. 
+
+Arrow direction: Variables that are orientated in the same direction or in the complete opposite direction are correlated in the positive or negative direction, respectively. This indicates a redunacy in information which PCA can help reduce.  
+Arrow magnitude: The length of the arrow signals the magnitude in which the original variable contributes to the PC. 
 ```{r}
-# biplot(pca_result, 
-#        col = c("grey", "#215B9D"), #"#D3D3D3"
-#        cex = 0.3,
-#        arrow.len = 0.15,              # Length of arrows (default is 0.1)
-#        main = "PCA Biplot")  
-
 autoplot(pca_result, 
          data = data,
          colour = 'grey',  # Color for points
@@ -300,10 +296,19 @@ autoplot(pca_result,
   theme_minimal() +  # Use a minimal theme for cleaner appearance
   theme(legend.position = "none")  # Remove legend for simplicity
 ```
-In one of these applications, discuss how PCA aids in building more robust statistical models by reducing multicollinearity and enhancing model interpretability.
-Compare VIF (variance inflation factor) before and after PCA.
+From the results, it's clear that Poverty_Percent and Food_index are negatively correlated and contribute redunant information to the dataset. Additional groups can be found such as obesity_age_adj and Diabetes which are positively correlated; Heart_Disease, Smoking_Rate, and Cancer; and so on. The biplot provides valuable information to understand these relationships.
 
+Multicollinearity
+PCA aids in building more robust statistical models by reducing multicollinearity by eliminating redunant information. If we were to model this dataset and arbitrarily choose a y-variable such as Heart_Disease, we can inspect the collinearity prior to PCA.
 
+Compare VIF (variance inflation factor) before PCA:
+```{r}
+library(car)
+data_df <-data.frame(data)
+model <- lm(Heart_Disease ~ ., data=data_df)
+vif(model)
+```
+Just as the biplot indicated, multicollinearity exists between obesity_age_adj and Diabetes. After implementing PCA, the principal components are orthogonal to each other and have no correlation. Reducing multicollinearity improves the model's stability, interpretability, and generalizability by simplifying it.
 
 ### Application 2: Image Compression  
 
