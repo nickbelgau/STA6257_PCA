@@ -143,7 +143,8 @@ The dataset contains demographic, health, and environmental metrics for counties
 - Poverty_Percent: Percentage of the population living below the poverty line.
 
 ```{r}
-data_raw <- read_csv("data/Alz_mortality_data_complete_with_state_csv.csv")
+url <- "https://raw.githubusercontent.com/nickbelgau/STA6257_PCA/main/data/Alz_mortality_data_complete_with_state_csv%20-%20Copy.csv"
+data_raw <- read_csv(url)
 ```
 
 
@@ -153,7 +154,7 @@ The dataset has 3109 observations and 66 variables.
 
 ```{r}
 selected_columns <- c(
-  "County", "State", "alz_ageadj_rate", "mental_distress", "Med_age", "sixtyfiveandup", "obesity_age_adj", "Smoking_Rate", "physical_inactivity", "Diabetes", "Heart_Disease", "Cancer", "Glyphosates", "NATA_Cancer_11", "Fine_PM_2_5", "Mercury_TPY", "Lead_TPY", "Percent_Less_than_HS", "Percent_with_Bachelors", "Pop_Dens", "per_rural", "Food_index", "Households_2up", "Household_3up", "Household_4up", "Poverty_Percent", "Atrazine_High_KG", "SUNLIGHT", "NATA_resp_11", "age_rate", "Gly_sqkm"
+  "County", "State", "mental_distress", "obesity_age_adj", "Smoking_Rate", "physical_inactivity", "Diabetes", "Heart_Disease", "Cancer", "NATA_Cancer_11", "Glyphosates", "Fine_PM_2_5", "Mercury_TPY", "Lead_TPY", "per_rural", "Food_index", "Poverty_Percent", "Atrazine_High_KG", "SUNLIGHT"
 )
 
 data <- USHealth %>%
