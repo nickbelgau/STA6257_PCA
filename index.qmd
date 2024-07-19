@@ -211,6 +211,10 @@ data <- scale(data)
 
 ```
 
+```{r}
+# ggpairs(data)
+```
+
 Heatmap
 ```{r}
 library(corrplot)
@@ -233,10 +237,6 @@ corrplot(abs(cor_matrix), method = "color",
 )
 ```
 
-
-```{r}
-# ggpairs(data)
-```
 
 The correlation matrix plots show enough of a relationship between variables to meet the assumption of linearity.
 
