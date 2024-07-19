@@ -157,7 +157,7 @@ ncol(data)
 
 ```{r}
 selected_columns <- c(
-  "County", "State", "obesity_age_adj", "Smoking_Rate", "physical_inactivity", "Diabetes", "Heart_Disease", "Cancer", "Glyphosates", "Fine_PM_2_5", "Mercury_TPY", "Lead_TPY", "per_rural", "Food_index", "Poverty_Percent", "Atrazine_High_KG", "SUNLIGHT"
+  "County", "State", "obesity_age_adj", "Smoking_Rate", "physical_inactivity", "Diabetes", "Heart_Disease", "Cancer",  "Mercury_TPY", "Lead_TPY", "Food_index", "Poverty_Percent", "Atrazine_High_KG", "SUNLIGHT"
 )
 
 deep_south_states <- c("AL", "AR", "FL", "GA", "LA", "MS", "NC", "SC", "TN", "TX", "VA")
