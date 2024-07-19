@@ -4056,14 +4056,65 @@ PC11 0.3638489    0.01204        1.00000</code></pre>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pca_result$rotation</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>eigenvalues <span class="ot">&lt;-</span> (pca_result<span class="sc">$</span>sdev)<span class="sc">^</span><span class="dv">2</span> <span class="sc">/</span> (<span class="fu">nrow</span>(data) <span class="sc">-</span> <span class="dv">1</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>eigenvectors <span class="ot">&lt;-</span> pca_result<span class="sc">$</span>rotation</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>eigenvalues</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] 0.0032345286 0.0013680801 0.0011301457 0.0008689318 0.0007235790
+ [6] 0.0005885425 0.0005486761 0.0004368407 0.0003672193 0.0002497556
+[11] 0.0001159247</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>eigenvectors</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>                         PC1         PC2         PC3          PC4           PC5
+obesity_age_adj   0.45640027 -0.07554591  0.03831550 -0.039419770  0.1853481458
+Smoking_Rate      0.38351508  0.26655335  0.08821330  0.072715678 -0.0949956290
+Diabetes          0.43989353 -0.11709474  0.04487334 -0.069421020  0.3404732770
+Heart_Disease     0.23391021  0.31449929  0.16852103  0.192694398 -0.7441339853
+Cancer            0.35952423  0.22215597  0.17074909  0.048827553 -0.0178480423
+Mercury_TPY      -0.04819365 -0.18599407  0.67524068 -0.202624792 -0.0186357627
+Lead_TPY         -0.09474745 -0.27229216  0.63012519  0.022755193 -0.0002355772
+Food_index       -0.31879650  0.48061895  0.11618145  0.074962947  0.1291019201
+Poverty_Percent   0.37297809 -0.32084729 -0.16760898 -0.015672128 -0.0851500916
+Atrazine_High_KG -0.02120991 -0.18510538  0.07175996  0.949409700  0.1750529066
+SUNLIGHT         -0.12101066 -0.53322556 -0.17729640 -0.002351526 -0.4813908923
+                           PC6         PC7         PC8         PC9        PC10
+obesity_age_adj   0.0006200198 -0.17223971 -0.42472270 -0.18603376  0.01134855
+Smoking_Rate      0.0879812964 -0.22541928  0.04816803  0.79794828 -0.24925345
+Diabetes          0.0755152819 -0.13004505 -0.38527204 -0.13676653  0.06877407
+Heart_Disease    -0.1080379153  0.22441954 -0.30558188 -0.24134784  0.02607198
+Cancer            0.2807221901 -0.32084160  0.66046300 -0.39719188  0.11752036
+Mercury_TPY      -0.6300979146 -0.23881551  0.09470375  0.03299011  0.03206889
+Lead_TPY          0.6273363430  0.32233292 -0.07606816  0.10469168  0.04151285
+Food_index        0.0919161283 -0.28933491 -0.24633096  0.12407107  0.68026782
+Poverty_Percent  -0.1654288749  0.36872835  0.23097877  0.25368231  0.66310611
+Atrazine_High_KG -0.1526681429 -0.05970231  0.02361022 -0.01039292 -0.02338247
+SUNLIGHT          0.2153650193 -0.60426273 -0.09960688  0.04527347  0.11291937
+                         PC11
+obesity_age_adj  -0.709804239
+Smoking_Rate      0.006979768
+Diabetes          0.689596826
+Heart_Disease     0.112983310
+Cancer           -0.001746509
+Mercury_TPY       0.024242846
+Lead_TPY         -0.058179528
+Food_index       -0.024273347
+Poverty_Percent  -0.040156122
+Atrazine_High_KG  0.005497599
+SUNLIGHT          0.040157904</code></pre>
+</div>
 </div>
 <p>Screeplot</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(pca_result, <span class="at">type =</span> <span class="st">&quot;l&quot;</span>, <span class="at">col =</span> <span class="st">&quot;#215B9D&quot;</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(pca_result, <span class="at">type =</span> <span class="st">&quot;l&quot;</span>, <span class="at">col =</span> <span class="st">&quot;#215B9D&quot;</span>, <span class="at">lwd =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -4081,16 +4132,16 @@ Arrow magnitude: The length of the arrow signals the magnitude in which the orig
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">autoplot</span>(pca_result, </span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>         <span class="at">data =</span> data,</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">colour =</span> <span class="st">&#39;grey&#39;</span>,  <span class="co"># Color for points</span></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">loadings =</span> <span class="cn">TRUE</span>,  <span class="co"># Show loadings</span></span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">loadings.colour =</span> <span class="st">&#39;#215B9D&#39;</span>,  <span class="co"># Color for arrows</span></span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">loadings.label =</span> <span class="cn">TRUE</span>,  <span class="co"># Show labels for loadings</span></span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">loadings.label.colour =</span> <span class="st">&#39;black&#39;</span>, </span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">loadings.label.size =</span> <span class="dv">3</span>) <span class="sc">+</span>  <span class="co"># Increase the size of the labels</span></span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span>  <span class="co"># Use a minimal theme for cleaner appearance</span></span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;none&quot;</span>)  <span class="co"># Remove legend for simplicity</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">autoplot</span>(pca_result, </span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>         <span class="at">data =</span> data,</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">colour =</span> <span class="st">&#39;grey&#39;</span>,  <span class="co"># Color for points</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">loadings =</span> <span class="cn">TRUE</span>,  <span class="co"># Show loadings</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">loadings.colour =</span> <span class="st">&#39;#215B9D&#39;</span>,  <span class="co"># Color for arrows</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">loadings.label =</span> <span class="cn">TRUE</span>,  <span class="co"># Show labels for loadings</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">loadings.label.colour =</span> <span class="st">&#39;black&#39;</span>, </span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">loadings.label.size =</span> <span class="dv">3</span>) <span class="sc">+</span>  <span class="co"># Increase the size of the labels</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span>  <span class="co"># Use a minimal theme for cleaner appearance</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;none&quot;</span>)  <span class="co"># Remove legend for simplicity</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -4106,10 +4157,10 @@ Arrow magnitude: The length of the arrow signals the magnitude in which the orig
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(car)</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>data_df <span class="ot">&lt;-</span><span class="fu">data.frame</span>(data)</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(Heart_Disease <span class="sc">~</span> ., <span class="at">data=</span>data_df)</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="fu">vif</span>(model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(car)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>data_df <span class="ot">&lt;-</span><span class="fu">data.frame</span>(data)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">lm</span>(Heart_Disease <span class="sc">~</span> ., <span class="at">data=</span>data_df)</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="fu">vif</span>(model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code> obesity_age_adj     Smoking_Rate         Diabetes           Cancer 

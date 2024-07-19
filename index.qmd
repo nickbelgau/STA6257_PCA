@@ -269,7 +269,12 @@ The target of 95% cumulative variance is maintained with the first 9 principal c
 
 View the PCA components (loadings)
 ```{r}
-# pca_result$rotation
+eigenvalues <- (pca_result$sdev)^2 / (nrow(data) - 1)
+
+eigenvectors <- pca_result$rotation
+
+eigenvalues
+eigenvectors
 ```
 
 Screeplot
