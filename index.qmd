@@ -19,7 +19,7 @@ editor:
 
 ## Introduction
 
-Across diverse industries and data science applications, Principal Component Analysis (PCA) offers a powerful solution to extracting valuable insights from complex datasets. The primary objective of PCA is to reduce the number of dimensions in the dataset while retaining most of the original information. This is directly applicable to big data scenarios where it is not feasible to rely on univariate analysis to find patterns, and redundancy in the data leads to inflated standard errors and poor model stability [@rahayu2017application].  
+Across diverse industries and data science applications, Principal Component Analysis (PCA) offers a powerful solution for extracting valuable insights from complex datasets. The primary objective of PCA is to reduce the number of dimensions in the dataset while retaining most of the original information. This is directly applicable to big data scenarios where it is not feasible to rely on univariate analysis to find patterns, and redundancy in the data leads to inflated standard errors and poor model stability [@rahayu2017application].  
 
 Developed by Karl Pearson in 1901, PCA utilizes linear algebra to transform the original dataset to a lower dimensional vector space of uncorrelated variables known as principal components. These are linear combinations of the original variables, and represent the information in a new coordinate system with axes aligned to the directions of maximum variability [@joshi2020prediction]. Most of the data lies in this new feature subspace, where variance is used to measure the amount of information it contains. The quality of this subspace is assessed by comparing its variance to the total variance of the entire dataset, helping PCA identify the main structure in the data [@marukatat2023tutorial].  
 
@@ -36,9 +36,6 @@ As with every technique, PCA has a few inherent limitations. It assumes linearit
 Additionally, PCA results in some degree of information loss, as the lower-dimensional representation will not retain all details from the original data. More specifically, in image compression, PCA can lead to loss of fine details and subtle features in images, especially when a high compression rate is applied. In addition, the computation of eigenvectors and eigenvalues, especially for large images, can be resource intensive and time-consuming [@do2012pca]. Lastly, selecting the optimal number of components to retain is subjective; choosing too few can lead to significant information loss, while choosing too many can lead to overfitting or unnecessary complexity.  
 
 Despite these drawbacks, PCA is crucial in data science for its ability to simplify complex datasets, reduce computational costs, and enhance the interpretability of data by focusing on the most significant features. It offers a powerful tool for improving model performance, reducing noise, and uncovering hidden patterns, making it indispensable for efficient and insightful data analysis.
-
-
-
 
 
 ## Methods  
@@ -173,9 +170,9 @@ skim(data)
 ```
 
 ### Linarity Analysis  
-PCA works on the premise that principal components are linear combinations of the original features. Linearity between variables can enhance the effectiveness of PCA, and lack thereof leads to information loss. The Harvey-Collier Test for Linearity can be used to conduct pairwise tests to gain more insight into the data. A test like this can be automated to flag variables. This is helpful for large datasets where visually inspecting each relationship can be time-consuming and ineffective. 
+PCA works on the premise that principal components are linear combinations of the original features. Linearity between variables boosts PCA efficiency, while its absence may cause information loss. Statistical pairwise testing can automate the identification of non-linear relationships, providing a practical alternative to time-intensive visual inspection methods which is particularly helpful for large datasets.  
 
-The Harvey-Collier Test that fits a linear model, calculates the residuals, and runs regression on those residuals. If the slope of the line-of-best-fit for the residuals is nonzero, the test may fail the linearity check. The test fails because the p-value is less than the significance level, so the relationship is nonlinear.
+The Harvey-Collier Test for Linearity assesses linearity by fitting a linear model to each variable pair, calculating residuals, and conducting regression again on these residuals. A significant nonzero slope in the residual regression indicates non-linearity, suggesting potential information loss in PCA.
 
 [RUN TEST ON ALL VARIABLES OF DATASET]
 [SHOW TABULAR P-VALUE RESULTS OR ON HEAT MAP (COLOR CODE BELOW THRESHOLD)]
@@ -223,28 +220,26 @@ harvey_collier_test <- function(data, x, y) {
 
 
 ```
-
+The test fails because the p-value is less than the significance level, so the relationship is nonlinear.  
 
 [HIGHLIGHT 1 RELATIONSHIP]  
 'obesity_age_adj'  
 X = sm.add_constant(X)  
 'Diabetes'  
 
-The residual plot between these variables confirms the nonlinear relationship which is why the test failed. Sometimes transformations can be helpful, but the risk is nonlinearizing the other relationships between the transformed variable and the rest of the dataset. While Linearity is crucial for optimal performance of PCA, its absence does not render this method unusable. No transformations were conducted and there is acknowledgement that PCA will result in some information loss.
+The residual plot for these variables demonstrates their nonlinear relationship, explaining the test failure. Although transformations can adjust linearity, they risk altering other variable relationships. Thus, no transformations were applied, acknowledging some information loss in PCA.
 
 
-### Outliers analysis  
-Outliers can distort PCA results by disproportionately increasing variance, shifting the direction of principal components, and inflating eigenvalues. Before implementing outlier removal techniques, it is crucial to first examine the distribution. This helps ensure such methods are appropriately applied and to validate the rationale behind outlier exclusion.  
-
-While PCA does not require normality, data that is roughly normally distributed can help minimize the impact of outliers. If data is found to be non-normal, transformations can be conducted to create a bell-shape curve that is approximately normal. Evaluating skewness and kurtosis provides a more practical approach for assessing distribution characteristics.
+### Outliers Analysis  
+Outliers can distort PCA results by disproportionately increasing variance, shifting the direction of principal components, and inflating eigenvalues. Before implementing outlier removal techniques, it is crucial to first examine the distribution to validate the rationale behind outlier exclusion. Although PCA does not require normality, a roughly normal distribution minimizes the impact from outliers. Non-normal data may undergo transformations like the Box-Cox to approximate normality. Assessing skewness and kurtosis offers practical insights into distribution characteristics.
 
 ```{r}
 library(moments)
 
 distribution_metrics <- function(df) {
   results <- data.frame(
-    Skewness = sapply(data, skewness),
-    Kurtosis = sapply(data, kurtosis)
+    Kurtosis = sapply(data, kurtosis),
+    Skewness = sapply(data, skewness)
   )
   results <- results[order(-results$Kurtosis),]
   return(results)
@@ -252,7 +247,7 @@ distribution_metrics <- function(df) {
 
 print(distribution_metrics(data))
 ```
-This analysis reveals that Atrazine_High_KG, Mercury_TPY, and Lead_TPY warrant closer inspection. A quick scan of the boxplots confirm that these are variables of interest that should be transformed to improve PCA. These variables are right-skewed and will have a significant amount of outliers if unadjusted.
+This analysis reveals columns with high kurtosis and skewness. Boxplots confirm that these are variables are right-skewed with numerous outliers, suggesting the need for transformation to improve PCA.
 ```{r}
 columns_to_transform <- c("Lead_TPY", "Mercury_TPY", "Atrazine_High_KG")
 
@@ -268,7 +263,7 @@ for (col in columns_to_transform) {
 }
 ```
 
-The Box-Cox transformation is a robust statistical method that normalizes the shape of data, enhancing its suitability for PCA. It is considered best practice to apply such transformations to columns selectively rather than on the entirety of the dataset, even when using Box-Cox. Automating this process can be achieved by setting a kurtosis threshold to run a Box-Cox on. Additionally, negative values must be carefully managed to ensure the Box-Cox transformation is correctly implemented. 
+The Box-Cox transformation is a robust statistical method that normalizes the data distribution, enhancing its suitability for PCA. It is considered best practice to apply such transformations to columns selectively rather than on the entirety of the dataset. Automating this process can be achieved by setting a kurtosis threshold.Additionally, negative values must be carefully managed to ensure the Box-Cox transformation is correctly implemented. 
 ```{r}
 library(MASS)
 
@@ -296,7 +291,7 @@ for (i in columns_to_transform) {
   lines(density(data_transform[[i]]), col = "darkred", lwd = 2)
 }
 ```
-The Box-Cox transformations successfully yielded an approximate bell-shaped distribution for these variables, effectively mitigating the influence of outliers. The executed tranformations were minor power adjustments given by the lambda values. This ensure PCA will be more effective without necessitating the manual removal individual data points.  
+The transformations create an approximate bell-shaped distribution, reducing outlier effects. Minor power adjustments, indicated by lambda values, enhance PCA effectiveness without the need for manual outlier removal.  
 ```{r}
 lambda_df <- data.frame(
   Variable = names(lambdas),

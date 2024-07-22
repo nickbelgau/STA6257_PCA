@@ -3276,7 +3276,7 @@ window.Quarto = {
 
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
-<p>Across diverse industries and data science applications, Principal Component Analysis (PCA) offers a powerful solution to extracting valuable insights from complex datasets. The primary objective of PCA is to reduce the number of dimensions in the dataset while retaining most of the original information. This is directly applicable to big data scenarios where it is not feasible to rely on univariate analysis to find patterns, and redundancy in the data leads to inflated standard errors and poor model stability <span class="citation" data-cites="rahayu2017application">(<a href="#ref-rahayu2017application" role="doc-biblioref">Rahayu et al. 2017</a>)</span>.</p>
+<p>Across diverse industries and data science applications, Principal Component Analysis (PCA) offers a powerful solution for extracting valuable insights from complex datasets. The primary objective of PCA is to reduce the number of dimensions in the dataset while retaining most of the original information. This is directly applicable to big data scenarios where it is not feasible to rely on univariate analysis to find patterns, and redundancy in the data leads to inflated standard errors and poor model stability <span class="citation" data-cites="rahayu2017application">(<a href="#ref-rahayu2017application" role="doc-biblioref">Rahayu et al. 2017</a>)</span>.</p>
 <p>Developed by Karl Pearson in 1901, PCA utilizes linear algebra to transform the original dataset to a lower dimensional vector space of uncorrelated variables known as principal components. These are linear combinations of the original variables, and represent the information in a new coordinate system with axes aligned to the directions of maximum variability <span class="citation" data-cites="joshi2020prediction">(<a href="#ref-joshi2020prediction" role="doc-biblioref">Joshi and Patil 2020</a>)</span>. Most of the data lies in this new feature subspace, where variance is used to measure the amount of information it contains. The quality of this subspace is assessed by comparing its variance to the total variance of the entire dataset, helping PCA identify the main structure in the data <span class="citation" data-cites="marukatat2023tutorial">(<a href="#ref-marukatat2023tutorial" role="doc-biblioref">Marukatat 2023</a>)</span>.</p>
 <p>PCA is often used during exploratory data analysis because this technique enables graphical visualization of the dataset. This can reveal unexpected relationships between the original variables that would otherwise be challenging to identify <span class="citation" data-cites="johnson2023applied">(<a href="#ref-johnson2023applied" role="doc-biblioref">Johnson and Wichern 2023</a>)</span>. By reducing the dimensionality, PCA simplifies the data structure, making it easier to interpret and analyze. As a result, trends, patterns, and outliers can be identified in the new reduced-dimension dataset <span class="citation" data-cites="richardson2009pca">(<a href="#ref-richardson2009pca" role="doc-biblioref">Richardson 2009</a>)</span>.</p>
 <p>Additionally, PCA is a powerful tool to address the curse of dimensionality and the main problem areas associated with high dimensionality: data sparsity, multicollinearity, and overfitting <span class="citation" data-cites="altman2018curse">(<a href="#ref-altman2018curse" role="doc-biblioref">Altman and Krzywinski 2018</a>)</span>. By projecting the data onto the principal components, the density of data points is increased in the new vector space which makes it easier to detect patterns and reduce noise. Multicollinearity is mitigated in the process because the principal components are uncorrelated to each other which improves stability and performance of the predictive models <span class="citation" data-cites="bharadiya2023tutorial">(<a href="#ref-bharadiya2023tutorial" role="doc-biblioref">Bharadiya 2023</a>)</span>. With dimensionality reduction, models become simpler which improves generalization and reduces overfitting.</p>
@@ -3907,8 +3907,8 @@ SUNLIGHT
 </section>
 <section id="linarity-analysis" class="level3">
 <h3 class="anchored" data-anchor-id="linarity-analysis">Linarity Analysis</h3>
-<p>PCA works on the premise that principal components are linear combinations of the original features. Linearity between variables can enhance the effectiveness of PCA, and lack thereof leads to information loss. The Harvey-Collier Test for Linearity can be used to conduct pairwise tests to gain more insight into the data. A test like this can be automated to flag variables. This is helpful for large datasets where visually inspecting each relationship can be time-consuming and ineffective.</p>
-<p>The Harvey-Collier Test that fits a linear model, calculates the residuals, and runs regression on those residuals. If the slope of the line-of-best-fit for the residuals is nonzero, the test may fail the linearity check. The test fails because the p-value is less than the significance level, so the relationship is nonlinear.</p>
+<p>PCA works on the premise that principal components are linear combinations of the original features. Linearity between variables boosts PCA efficiency, while its absence may cause information loss. Statistical pairwise testing can automate the identification of non-linear relationships, providing a practical alternative to time-intensive visual inspection methods which is particularly helpful for large datasets.</p>
+<p>The Harvey-Collier Test for Linearity assesses linearity by fitting a linear model to each variable pair, calculating residuals, and conducting regression again on these residuals. A significant nonzero slope in the residual regression indicates non-linearity, suggesting potential information loss in PCA.</p>
 <p>[RUN TEST ON ALL VARIABLES OF DATASET] [SHOW TABULAR P-VALUE RESULTS OR ON HEAT MAP (COLOR CODE BELOW THRESHOLD)] A significane level of = 0.05 was used.</p>
 <div class="cell">
 <details class="code-fold">
@@ -3954,16 +3954,16 @@ SUNLIGHT
 <span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a><span class="co">#   labs(title = &quot;Heatmap of P-values from Harvey-Collier Test&quot;, fill = &quot;P-Value&quot;)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
+<p>The test fails because the p-value is less than the significance level, so the relationship is nonlinear.</p>
 <p>[HIGHLIGHT 1 RELATIONSHIP]<br>
 ‘obesity_age_adj’<br>
 X = sm.add_constant(X)<br>
 ‘Diabetes’</p>
-<p>The residual plot between these variables confirms the nonlinear relationship which is why the test failed. Sometimes transformations can be helpful, but the risk is nonlinearizing the other relationships between the transformed variable and the rest of the dataset. While Linearity is crucial for optimal performance of PCA, its absence does not render this method unusable. No transformations were conducted and there is acknowledgement that PCA will result in some information loss.</p>
+<p>The residual plot for these variables demonstrates their nonlinear relationship, explaining the test failure. Although transformations can adjust linearity, they risk altering other variable relationships. Thus, no transformations were applied, acknowledging some information loss in PCA.</p>
 </section>
 <section id="outliers-analysis" class="level3">
-<h3 class="anchored" data-anchor-id="outliers-analysis">Outliers analysis</h3>
-<p>Outliers can distort PCA results by disproportionately increasing variance, shifting the direction of principal components, and inflating eigenvalues. Before implementing outlier removal techniques, it is crucial to first examine the distribution. This helps ensure such methods are appropriately applied and to validate the rationale behind outlier exclusion.</p>
-<p>While PCA does not require normality, data that is roughly normally distributed can help minimize the impact of outliers. If data is found to be non-normal, transformations can be conducted to create a bell-shape curve that is approximately normal. Evaluating skewness and kurtosis provides a more practical approach for assessing distribution characteristics.</p>
+<h3 class="anchored" data-anchor-id="outliers-analysis">Outliers Analysis</h3>
+<p>Outliers can distort PCA results by disproportionately increasing variance, shifting the direction of principal components, and inflating eigenvalues. Before implementing outlier removal techniques, it is crucial to first examine the distribution to validate the rationale behind outlier exclusion. Although PCA does not require normality, a roughly normal distribution minimizes the impact from outliers. Non-normal data may undergo transformations like the Box-Cox to approximate normality. Assessing skewness and kurtosis offers practical insights into distribution characteristics.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -3971,8 +3971,8 @@ X = sm.add_constant(X)<br>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>distribution_metrics <span class="ot">&lt;-</span> <span class="cf">function</span>(df) {</span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Skewness =</span> <span class="fu">sapply</span>(data, skewness),</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">Kurtosis =</span> <span class="fu">sapply</span>(data, kurtosis)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">Kurtosis =</span> <span class="fu">sapply</span>(data, kurtosis),</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">Skewness =</span> <span class="fu">sapply</span>(data, skewness)</span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  results <span class="ot">&lt;-</span> results[<span class="fu">order</span>(<span class="sc">-</span>results<span class="sc">$</span>Kurtosis),]</span>
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(results)</span>
@@ -3981,21 +3981,21 @@ X = sm.add_constant(X)<br>
 <span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">distribution_metrics</span>(data))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>                   Skewness   Kurtosis
-Atrazine_High_KG 27.6792372 866.377802
-Mercury_TPY       7.4402444  72.724213
-Lead_TPY          5.0314443  34.286296
-Cancer            0.3562768   5.489565
-Food_index       -0.8643685   4.878495
-Heart_Disease     0.8405355   3.867908
-Poverty_Percent   0.4674652   3.795263
-obesity_age_adj   0.2879323   3.680773
-Smoking_Rate     -0.7543274   3.531763
-Diabetes          0.5427094   3.344971
-SUNLIGHT          0.3380277   2.974585</code></pre>
+<pre><code>                   Kurtosis   Skewness
+Atrazine_High_KG 866.377802 27.6792372
+Mercury_TPY       72.724213  7.4402444
+Lead_TPY          34.286296  5.0314443
+Cancer             5.489565  0.3562768
+Food_index         4.878495 -0.8643685
+Heart_Disease      3.867908  0.8405355
+Poverty_Percent    3.795263  0.4674652
+obesity_age_adj    3.680773  0.2879323
+Smoking_Rate       3.531763 -0.7543274
+Diabetes           3.344971  0.5427094
+SUNLIGHT           2.974585  0.3380277</code></pre>
 </div>
 </div>
-<p>This analysis reveals that Atrazine_High_KG, Mercury_TPY, and Lead_TPY warrant closer inspection. A quick scan of the boxplots confirm that these are variables of interest that should be transformed to improve PCA. These variables are right-skewed and will have a significant amount of outliers if unadjusted.</p>
+<p>This analysis reveals columns with high kurtosis and skewness. Boxplots confirm that these are variables are right-skewed with numerous outliers, suggesting the need for transformation to improve PCA.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -4020,7 +4020,7 @@ SUNLIGHT          0.3380277   2.974585</code></pre>
 </div>
 </div>
 </div>
-<p>The Box-Cox transformation is a robust statistical method that normalizes the shape of data, enhancing its suitability for PCA. It is considered best practice to apply such transformations to columns selectively rather than on the entirety of the dataset, even when using Box-Cox. Automating this process can be achieved by setting a kurtosis threshold to run a Box-Cox on. Additionally, negative values must be carefully managed to ensure the Box-Cox transformation is correctly implemented.</p>
+<p>The Box-Cox transformation is a robust statistical method that normalizes the data distribution, enhancing its suitability for PCA. It is considered best practice to apply such transformations to columns selectively rather than on the entirety of the dataset. Automating this process can be achieved by setting a kurtosis threshold.Additionally, negative values must be carefully managed to ensure the Box-Cox transformation is correctly implemented.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -4058,7 +4058,7 @@ SUNLIGHT          0.3380277   2.974585</code></pre>
 </div>
 </div>
 </div>
-<p>The Box-Cox transformations successfully yielded an approximate bell-shaped distribution for these variables, effectively mitigating the influence of outliers. The executed tranformations were minor power adjustments given by the lambda values. This ensure PCA will be more effective without necessitating the manual removal individual data points.</p>
+<p>The transformations create an approximate bell-shaped distribution, reducing outlier effects. Minor power adjustments, indicated by lambda values, enhance PCA effectiveness without the need for manual outlier removal.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -4140,7 +4140,8 @@ PC11 0.3630131    0.01198        1.00000</code></pre>
 </div>
 </div>
 <p>The target of 95% cumulative variance is maintained with the first 9 principal components, indicating a minor improvement in dimensionality reduction. Ideally, closer to 95% variance with fewer dimensions would be preferable, but this was not achieved in this case. It is still valuable to implement PCA despite the minor improvement.</p>
-<p>These results demonstrate an improvement in the explained variance compared to the untransformed dataset:</p>
+<p>These results demonstrate an improvement in the explained variance compared to the untransformed dataset:<br>
+[INSTEAD OF TABULAR, SHOW AS STACKED LINE CHART OF CUMULATIVE VARIANCE BY PC, highlight the delta]</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
