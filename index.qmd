@@ -240,8 +240,8 @@ data_residual$residuals <- residuals(lm(Diabetes ~ obesity_age_adj, data = data_
 
 ggplot(data_residual, aes(x = obesity_age_adj, y = residuals)) +
   geom_point() + 
-  geom_smooth(method = "loess", se = FALSE, color = "blue") +  # Add the LOWESS curve
-  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +  # Add a horizontal line at y = 0
+  geom_smooth(method = "loess", se = FALSE, color = "blue") +  # LOWESS curve
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
   labs(title = "Residuals of Diabetes vs. obesity_age_adj",
        x = "obesity_age_adj", y = "Residuals") +
   theme_minimal()
