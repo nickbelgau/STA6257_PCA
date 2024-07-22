@@ -294,7 +294,6 @@ for (i in columns_to_transform) {
 The transformations create an approximate bell-shaped distribution, reducing outlier effects. Minor power adjustments, indicated by lambda values, enhance PCA effectiveness without the need for manual outlier removal.  
 ```{r}
 lambda_df <- data.frame(
-  Variable = names(lambdas),
   Lambda = unlist(lambdas)
 )
 print(lambda_df)
