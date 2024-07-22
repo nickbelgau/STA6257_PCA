@@ -172,62 +172,80 @@ skim(data)
 ### Linarity Analysis  
 PCA works on the premise that principal components are linear combinations of the original features. Linearity between variables boosts PCA efficiency, while its absence may cause information loss. Statistical pairwise testing can automate the identification of non-linear relationships, providing a practical alternative to time-intensive visual inspection methods which is particularly helpful for large datasets.  
 
-The Harvey-Collier Test for Linearity assesses linearity by fitting a linear model to each variable pair, calculating residuals, and conducting regression again on these residuals. A significant nonzero slope in the residual regression indicates non-linearity, suggesting potential information loss in PCA.
+The Harvey-Collier Test for Linearity fits a linear model to each variable pair, calculates residuals, and conducts regression again on these residuals. A significant nonzero slope in the residual regression indicates non-linearity, suggesting potential information loss in PCA.
 
-[RUN TEST ON ALL VARIABLES OF DATASET]
-[SHOW TABULAR P-VALUE RESULTS OR ON HEAT MAP (COLOR CODE BELOW THRESHOLD)]
-A significane level of \alpha = 0.05 was used.
 ```{r}
+library(lmtest)
 library(car)
-library(ggplot2)
-library(reshape2)
 
-# Function to run Harvey-Collier Test
 harvey_collier_test <- function(data, x, y) {
-  model <- lm(as.formula(paste(y, "~", x)), data = data)
-  tryCatch({
-    test <- car::crPlots(model, variable = x, id.n = 0)
-    return(test$p)
-  }, error = function(e) {
-    return(NA)  # Return NA if the test fails
-  })
+  formula <- as.formula(paste(y, "~", x))
+  model <- lm(formula, data = data)
+  test <- harvtest(model)
+  p_value <- test$p.value
+  return(signif(p_value, digits = 2))
 }
 
-# Calculate p-values
-# variable_names <- names(data)
-# p_values <- matrix(NA, nrow = length(variable_names), ncol = length(variable_names), 
-#                    dimnames = list(variable_names, variable_names))
+variables <- names(data)
+n <- length(variables)
+p_matrix <- matrix(NA, n, n, dimnames = list(variables, variables))
 
-# for (i in 1:length(variable_names)) {
-#   for (j in 1:length(variable_names)) {
-#     if (i != j) {
-#       p_values[i, j] <- harvey_collier_test(data, variable_names[i], variable_names[j])
-#     }
-#   }
-# }
-# print(p_values)
-
-# # Plot the p-values
-# p_values_df <- melt(as.data.frame(p_values), varnames = c("Variable1", "Variable2"), value.name = "P_Value")
-
-# ggplot(p_values_df, aes(x = Variable1, y = Variable2, fill = P_Value)) +
-#   geom_tile() +
-#   scale_fill_gradient2(low = "white", high = "white", mid = "white", midpoint = 0.05,
-#                        na.value = "#215B9D", limits = c(0, 0.05), oob = scales::squish) +
-#   theme_minimal() +
-#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-#   labs(title = "Heatmap of P-values from Harvey-Collier Test", fill = "P-Value")
-
-
+for (i in 1:n) {
+  for (j in 1:n) {
+    if (i != j) {  # Avoid testing a variable against itself
+      p_matrix[i, j] <- harvey_collier_test(data, variables[i], variables[j])
+    }
+  }
+}
 ```
-The test fails because the p-value is less than the significance level, so the relationship is nonlinear.  
+When the p-value is less than the signficance level, the test declares that the relationship is nonlinear. A heatmap of the p-values reveals which pairs are nonlinear with color-coding. 
+```{r}
+library(ggplot2)
 
-[HIGHLIGHT 1 RELATIONSHIP]  
-'obesity_age_adj'  
-X = sm.add_constant(X)  
-'Diabetes'  
+p_matrix_long <- melt(p_matrix)
+names(p_matrix_long) <- c("Var1", "Var2", "p_value")
 
-The residual plot for these variables demonstrates their nonlinear relationship, explaining the test failure. Although transformations can adjust linearity, they risk altering other variable relationships. Thus, no transformations were applied, acknowledging some information loss in PCA.
+p_matrix_long$Var1 <- factor(p_matrix_long$Var1, levels = rev(unique(p_matrix_long$Var1)))
+
+alpha = 0.0001
+
+gradient_fill <- scale_fill_gradientn(
+  colors = c("#215B9D", "#F0F0F0", "#F0F0F0"),
+  values = scales::rescale(c(0, alpha, 1)),
+  na.value = "#F0F0F0",  # Also set missing values to light grey
+  guide = "colourbar"
+)
+
+ggplot(p_matrix_long, aes(Var1, Var2, fill= p_value)) + 
+  geom_tile(color = "white") +
+  geom_text(aes(label = sprintf("%.2e", p_value)), color = "black", size = 2) + 
+  gradient_fill +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+        axis.text.y = element_text(size = 10),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "none") + 
+  labs(title = "Heatmap of P-Values") 
+```
+
+The residual plot for a single pair that was flagged as nonlinear reveals why the Harvey-Collier Test declared nonlinearity. Although transformations can adjust linearity, they risk altering other variable relationships. Thus, no transformations were applied, acknowledging some information loss in PCA.
+
+```{r}
+data_residual <- as.data.frame(data)
+
+data_residual$residuals <- residuals(lm(Diabetes ~ obesity_age_adj, data = data_residual))
+
+ggplot(data_residual, aes(x = obesity_age_adj, y = residuals)) +
+  geom_point() + 
+  geom_smooth(method = "loess", se = FALSE, color = "blue") +  # Add the LOWESS curve
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +  # Add a horizontal line at y = 0
+  labs(title = "Residuals of Diabetes vs. obesity_age_adj",
+       x = "obesity_age_adj", y = "Residuals") +
+  theme_minimal()
+```
 
 
 ### Outliers Analysis  
@@ -308,7 +326,7 @@ library(corrplot)
 
 cor_matrix <- cor(data, use = "complete.obs")  # Handle missing values
 
-color_palette <- colorRampPalette(c("#215B9D", "#DCE6F1", "#215B9D"))(200) # blue
+color_palette <- colorRampPalette(c("#215B9D", "#DCE6F1", "#215B9D"))(200) # blue #215B9D
 
 corrplot(abs(cor_matrix), method = "color",
         #  type = "lower", 
@@ -328,12 +346,12 @@ corrplot(abs(cor_matrix), method = "color",
 
 The prcomp() function allows parameters to scale and mean-center at the time of executing PCA.
 ```{r}
-pca_result <- prcomp(data_transform, center=TRUE, scale.=TRUE)
-pca_summary <- summary(pca_result)
-importance <- as.data.frame(pca_summary$importance)
-importance <- t(importance) # transpose to make cleaner
-colnames(importance) <- c("Std Dev", "Proportion", "Cumulative Var")
-importance
+pca_result_transform <- prcomp(data_transform, center=TRUE, scale.=TRUE)
+pca_summary_transform <- summary(pca_result_transform)
+importance_transform <- as.data.frame(pca_summary_transform$importance)
+importance_transform <- t(importance_transform) # transpose to make cleaner
+colnames(importance_transform) <- c("Std Dev", "Proportion", "Cumulative Var")
+importance_transform
 ```
 The target of 95% cumulative variance is maintained with the first 9 principal components, indicating a minor improvement in dimensionality reduction. Ideally, closer to 95% variance with fewer dimensions would be preferable, but this was not achieved in this case. It is still valuable to implement PCA despite the minor improvement.  
 
@@ -345,7 +363,28 @@ pca_summary <- summary(pca_result)
 importance <- as.data.frame(pca_summary$importance)
 importance <- t(importance) # transpose to make cleaner
 colnames(importance) <- c("Std Dev", "Proportion", "Cumulative Var")
-importance
+
+
+library(ggplot2)
+# Adding an identifier column to each data frame
+importance_transform$Data <- "Transformed"
+importance$Data <- "Original"
+
+# Combining both data frames for plotting
+combined_importance <- rbind(importance_transform, importance)
+
+# Convert row names to a column for plotting
+combined_importance$PC <- rownames(combined_importance)
+
+# # Create line plot
+# ggplot(combined_importance, aes(x = PC, y = `Cumulative Var`, color = Data, group = Data)) +
+#   geom_line() +
+#   labs(title = "Comparison of Cumulative Variance",
+#        x = "Principal Component",
+#        y = "Cumulative Variance") +
+#   theme_minimal() +
+#   scale_color_manual(values = c("blue", "red")) # Adjust colors as needed
+
 ```
 
 View the PCA components (loadings)
