@@ -343,7 +343,8 @@ importance
 ```
 The target of 95% cumulative variance is maintained with the first 9 principal components, indicating a minor improvement in dimensionality reduction. Ideally, closer to 95% variance with fewer dimensions would be preferable, but this was not achieved in this case. It is still valuable to implement PCA despite the minor improvement.  
 
-These results demonstrate an improvement in the explained variance compared to the untransformed dataset:
+These results demonstrate an improvement in the explained variance compared to the untransformed dataset:  
+[INSTEAD OF TABULAR, SHOW AS STACKED LINE CHART OF CUMULATIVE VARIANCE BY PC, highlight the delta]  
 ```{r}
 pca_result <- prcomp(data, center=TRUE, scale.=TRUE)
 pca_summary <- summary(pca_result)
