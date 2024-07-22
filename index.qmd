@@ -302,7 +302,6 @@ lambda_df <- data.frame(
   Variable = names(lambdas),
   Lambda = unlist(lambdas)
 )
-print("Lambda values used for transformation:")
 print(lambda_df)
 ```
 
@@ -400,7 +399,8 @@ Compare VIF (variance inflation factor) before PCA:
 library(car)
 data_df <-data.frame(data)
 model <- lm(Heart_Disease ~ ., data=data_df)
-vif(model)
+
+data.frame(VIF=vif(model))
 ```
 Just as the biplot indicated, multicollinearity exists between obesity_age_adj and Diabetes. After implementing PCA, the principal components are orthogonal to each other and have no correlation. Reducing multicollinearity improves the model's stability, interpretability, and generalizability by simplifying it.
 
