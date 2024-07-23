@@ -70,7 +70,7 @@ While different methods can be used to determine the principal components, Singu
   For each singular value $\sigma_i$ in the matrix of singular values $\Sigma$, compute $\sigma_i^2$ and calculate the individual variance. The cumulative explained variance target is specified (typically 95%) as a criteria for PC selection. Determine the number of components needs to reach the desired cumulative explained variance.
 
 4. **Transform the data**  
-  Project the standardized data onto the selected principal components.
+  Project the data onto the selected principal components. This yields the new subspace with reduced dimensions.
   $$
   X_{\text{transformed}} = X_{\text{standardized}} V_{\text{selected}}
   $$
@@ -346,55 +346,57 @@ corrplot(abs(cor_matrix), method = "color",
 
 The prcomp() function allows parameters to scale and mean-center at the time of executing PCA.
 ```{r}
-pca_result_transform <- prcomp(data_transform, center=TRUE, scale.=TRUE)
-pca_summary_transform <- summary(pca_result_transform)
-importance_transform <- as.data.frame(pca_summary_transform$importance)
-importance_transform <- t(importance_transform) # transpose to make cleaner
-colnames(importance_transform) <- c("Std Dev", "Proportion", "Cumulative Var")
-importance_transform
-```
-The target of 95% cumulative variance is maintained with the first 9 principal components, indicating a minor improvement in dimensionality reduction. Ideally, closer to 95% variance with fewer dimensions would be preferable, but this was not achieved in this case. It is still valuable to implement PCA despite the minor improvement.  
-
-These results demonstrate an improvement in the explained variance compared to the untransformed dataset:  
-[INSTEAD OF TABULAR, SHOW AS STACKED LINE CHART OF CUMULATIVE VARIANCE BY PC, highlight the delta]  
-```{r}
-pca_result <- prcomp(data, center=TRUE, scale.=TRUE)
+pca_result <- prcomp(data_transform, center=TRUE, scale.=TRUE)
 pca_summary <- summary(pca_result)
 importance <- as.data.frame(pca_summary$importance)
 importance <- t(importance) # transpose to make cleaner
 colnames(importance) <- c("Std Dev", "Proportion", "Cumulative Var")
+importance
+```
+The target of 95% cumulative variance is maintained with the first 9 principal components, indicating a minor improvement in dimensionality reduction. Ideally, closer to 95% variance with fewer dimensions would be preferable, but this was not achieved in this case. It is still valuable to implement PCA despite the minor improvement.  
 
+Transforming the dataset using the Box-Cox transformation resulted in an improvement by retaining more information. This is apparent by the higher explained variance.
+```{r}
+# conduct PCA on the original untransformed dataset
+pca_result_original <- prcomp(data, center=TRUE, scale.=TRUE)
+pca_summary_original <- summary(pca_result_original)
+importance_original <- as.data.frame(pca_summary_original$importance)
+importance_original <- t(importance_original)
+colnames(importance_original) <- c("Std Dev", "Proportion", "Cumulative Var")
 
-library(ggplot2)
-# Adding an identifier column to each data frame
-importance_transform$Data <- "Transformed"
-importance$Data <- "Original"
+importance <- as.data.frame(importance)
+importance$PC <- rownames(importance)
+importance$PC <- as.numeric(substring(importance$PC, 3))
+importance$name <- "transform"
 
-# Combining both data frames for plotting
-combined_importance <- rbind(importance_transform, importance)
+importance_original <- as.data.frame(importance_original)
+importance_original$PC <- rownames(importance_original)
+importance_original$PC <- as.numeric(substring(importance_original$PC, 3))
+importance_original$name <- "original"
 
-# Convert row names to a column for plotting
-combined_importance$PC <- rownames(combined_importance)
+combined_results <- rbind(importance, importance_original)
+rownames(combined_results) <- NULL
+combined_results$PC <- factor(combined_results$PC)
 
-# # Create line plot
-# ggplot(combined_importance, aes(x = PC, y = `Cumulative Var`, color = Data, group = Data)) +
-#   geom_line() +
-#   labs(title = "Comparison of Cumulative Variance",
-#        x = "Principal Component",
-#        y = "Cumulative Variance") +
-#   theme_minimal() +
-#   scale_color_manual(values = c("blue", "red")) # Adjust colors as needed
-
+ggplot(combined_results, aes(x=PC, y=`Cumulative Var`, color=name, group=name)) +
+  geom_line(size=1.1) +
+  labs(title = "Comparison of Cumulative Variance",
+       x = "Principal Component",
+       y = "Cumulative Variance") +
+  theme_minimal() +
+  scale_color_manual(values = c("black", "#215B9D")) +
+  scale_x_discrete()
 ```
 
-View the PCA components (loadings)
+View the eigenvalues - loadings components:  
 ```{r}
-# eigenvalues <- (pca_result$sdev)^2 / (nrow(data) - 1)
-
-# eigenvectors <- pca_result$rotation
-
-# eigenvalues
-# eigenvectors
+eigenvalues <- (pca_result$sdev)^2
+eigenvalues
+```
+Eigenvectors:  
+```{r}
+eigenvectors <- pca_result$rotation
+eigenvectors
 ```
 
 
@@ -412,7 +414,7 @@ Arrow direction: Variables that are orientated in the same direction or in the c
 Arrow magnitude: The length of the arrow signals the magnitude in which the original variable contributes to the PC. 
 ```{r}
 autoplot(pca_result, 
-         data = data,
+         data = data_transform,
          colour = 'grey',
          loadings = TRUE,
          loadings.colour = '#215B9D',
@@ -431,7 +433,7 @@ PCA aids in building more robust statistical models by reducing multicollinearit
 Compare VIF (variance inflation factor) before PCA:
 ```{r}
 library(car)
-data_df <-data.frame(data)
+data_df <-data.frame(data_transform)
 model <- lm(Heart_Disease ~ ., data=data_df)
 
 data.frame(VIF=vif(model))
