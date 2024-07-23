@@ -318,9 +318,8 @@ print(lambda_df)
 ```
 
 ### Correlation Analysis
-Correlation, multicolinearity, information, 
+A heatmap of the correlation matrix was analyzed to identify highly correlated variables, indicating potential multicollinearity within the dataset. By applying PCA, correlated variables can be transformed into orthogonal components which eliminate multicollinearity. This transformation ensures each principal component captures unique variance, improving the clarity and reliability of modeling.
 
-Heatmap
 ```{r}
 library(corrplot)
 
