@@ -100,8 +100,6 @@ This section covers the primary assumptions of PCA and details how they can be t
 
 **Testing**: Data will usually not arrive in a condition that meets this requirement. Luckily, statistical packages in common programming languages offer simple methods to scale and mean-center data. Outliers can be detected using a variety of distribution plots, but automated methods could be employed for larger datasets which is beyond the scope of this paper.  
 
-! need to add Varimax, and what loadings are 
-
 
 ## Application 1 - Analysis and Results
 
@@ -122,11 +120,14 @@ library(rrcov)
 library(psych)
 library(stats)
 library(ggfortify)
+library(lmtest)
+library(car)
+library(MASS)
 ```
 
 ### Dataset Description
 
-The dataset contains demographic, health, and environmental metrics for counties in the United States. Each row represents data for a specific county of a state. The columns analyzed were:  
+The dataset contains demographic, health, and environmental metrics for counties in the United States. Each row represents data for a specific county of a state [@tejada_vera_2013] [@amin_2018]. The columns analyzed were:  
 - obesity_age_adj: Age-adjusted obesity rate.  
 - Smoking_Rate: Rate of smoking within the population.  
 - Diabetes: Diabetes prevalence rate.  
@@ -160,7 +161,7 @@ data <- data_raw %>%
   select(all_of(selected_columns))
 
 data <- data %>%
-  select(-County, -State)
+  dplyr::select(-County, -State)
 ```
 
 The variables appear to be continuous because the data types are "numeric" with high cardinality. There are no nulls. It is clear that scaling and mean-centering will be needed.  
@@ -172,12 +173,9 @@ skim(data)
 ### Linarity Analysis  
 PCA works on the premise that principal components are linear combinations of the original features. Linearity between variables boosts PCA efficiency, while its absence may cause information loss. Statistical pairwise testing can automate the identification of non-linear relationships, providing a practical alternative to time-intensive visual inspection methods which is particularly helpful for large datasets.  
 
-The Harvey-Collier Test for Linearity fits a linear model to each variable pair, calculates residuals, and conducts regression again on these residuals. A significant nonzero slope in the residual regression indicates non-linearity, suggesting potential information loss in PCA.
+The Harvey-Collier Test for Linearity fits a linear model to each variable pair, calculates recursive residuals, and conducts regression again on these residuals [@nwakuya2022instability] [@harvey1977testing]. A significant nonzero slope in the residual regression indicates non-linearity, suggesting potential information loss in PCA.
 
 ```{r}
-library(lmtest)
-library(car)
-
 harvey_collier_test <- function(data, x, y) {
   formula <- as.formula(paste(y, "~", x))
   model <- lm(formula, data = data)
@@ -281,10 +279,8 @@ for (col in columns_to_transform) {
 }
 ```
 
-The Box-Cox transformation is a robust statistical method that normalizes the data distribution, enhancing its suitability for PCA. It is considered best practice to apply such transformations to columns selectively rather than on the entirety of the dataset. Automating this process can be achieved by setting a kurtosis threshold.Additionally, negative values must be carefully managed to ensure the Box-Cox transformation is correctly implemented. 
+The Box-Cox transformation is a robust statistical method that normalizes the data distribution, enhancing its suitability for PCA [@compression2014boxcox]. It is considered best practice to apply such transformations to columns selectively rather than on the entirety of the dataset. Automating this process can be achieved by setting a kurtosis threshold.Additionally, negative values must be carefully managed to ensure the Box-Cox transformation is correctly implemented. 
 ```{r}
-library(MASS)
-
 box_cox_transform <- function(df, columns) {
   transformed_df <- df
   lambdas <- list()
@@ -348,20 +344,69 @@ The prcomp() function allows parameters to scale and mean-center at the time of 
 pca_result <- prcomp(data_transform, center=TRUE, scale.=TRUE)
 pca_summary <- summary(pca_result)
 importance <- as.data.frame(pca_summary$importance)
-importance <- t(importance) # transpose to make cleaner
-colnames(importance) <- c("Std Dev", "Proportion", "Cumulative Var")
+importance <- as.data.frame(t(importance)) # transpose to make cleaner
+
+importance$Eigenvalues <- pca_result$sdev^2
+colnames(importance) <- c("Std Dev", "Proportion", "Cumulative Variance", "Eigenvalues")
+importance <- importance[, c("Std Dev", "Eigenvalues", "Proportion", "Cumulative Variance")] # rearrange
 importance
 ```
-The target of 95% cumulative variance is maintained with the first 9 principal components, indicating a minor improvement in dimensionality reduction. Ideally, closer to 95% variance with fewer dimensions would be preferable, but this was not achieved in this case. It is still valuable to implement PCA despite the minor improvement.  
+In PCA, the target explained variance is decided after acknowleding a trade-off between information retention and dimensionality reduction; common practice is to aim for 70-95%. The first principal component captures a substantial underlying pattern in the dataset, accounting for over 33% of the explained variance. The first few components are crucial for capturing the major variance in the data. Later components appear to represent more refined details in the data, tapering off until finally 95% variance is obtained by the ninth principal component.  
 
-Transforming the dataset using the Box-Cox transformation resulted in an improvement by retaining more information. This is apparent by the higher explained variance.
+The scree plot shows an elbow at the fourth principal component, indicating a point of diminishing returns. Focusing on the first four components might be optimal depending on the objective. They likely provide a sufficient summary of the data with significant variance coverage while avoiding overfitting. Although it should be noted that for a dataset this small, dimensionality reduction is likely not valued as a priority objective.  
+```{r}
+plot(pca_result, type = "l", col = "#215B9D", lwd = 2)
+```
+
+Eigenvectors, or loadings, represent the weight of each of the original variables in the linear combination to form the new principal components. Loadings close to -1 or 1 means the original variable has a significant contribution.  
+
+The loadings can be summarized by principal component to reveal interesting  structure to the data.
+**PC1**: Strong positive loadings for obesity_age_adj, Smoking_Rate, Diabetes, Heart_Disease, Cancer, and Poverty_Percent, likely represents general health and lifestyle factors. This component suggests that increases in these variables correlate with poorer health outcomes.    
+**PC2**: Strong negative loadings for Mercury_TPY and Lead_TPY, indicating association with environmental exposure. Higher exposure levels will cause the score on this PC to decrease due to the sign of the loading value.  
+**PC3**: While SUNLIGHT has the highest loading and positive contribution to this PC score, the relationship between Food_index and Poverty_index is interesting. These two variables are negatively correlated which means as access to higher quality food decreases, poverty level will increase and in turn both of these factors will reduce the score of this principal component.
+**PC4**: This PC is largely influenced by the chemical Atrazine and has some correlation to Cancer. This could point towards a link between agricultural practices and these variables.
+```{r}
+eigenvectors <- pca_result$rotation
+first_four_eigenvectors <- eigenvectors[, 1:4]
+first_four_eigenvectors
+```
+
+A biplot is an effective visualization tool in PCA that combines the projection of the original data points and the vectors representing each variable's contribution onto the principal component axes. The points on the graph are the original data points projected on the first two principal component axes. The vectors (or arrows) are the contribution of each of the original variables to the principal components. The directions of the principal components are dictated by the loadings. Variables that are orientated in the same direction or in the complete opposite direction are correlated in the positive or negative direction, respectively. This indicates a redundancy in information which PCA can help reduce. The arrow length signals the magnitude in which the original variable contributes to the PC.  
+```{r}
+autoplot(pca_result, 
+         data = data_transform,
+         colour = 'grey',
+         loadings = TRUE,
+         loadings.colour = '#215B9D',
+         loadings.label = TRUE,
+         loadings.label.colour = 'black', 
+         loadings.label.size = 3) + 
+  theme_minimal() +
+  theme(legend.position = "none"
+)
+```
+From the results, it's clear that Food_index is negatively correlated to obesity_age_adj and Diabetes which contributes redundant information to the dataset. Additional positively correlated groups are found due to the small angle between the vectors: Mercuryy_TPY and Lead_TPY; Heart_Disease, Smoking_Rate, and Poverty; and so on. The biplot provides valuable information to understand these relationships.  
+
+
+PCA aids in building more robust statistical models by reducing multicollinearity and removing redundant information. For example, consider a scenario where 'Heart_Disease' is chosen as the dependent variable to model. Before applying PCA, the collinearity can be assessed by using the Variance Inflation Factor (VIF). Initial VIF results confirm multicollinearity between variables such as 'obesity_age_adj' and 'Diabetes', as suggested by the biplot. After implementing PCA, the principal components are orthogonal to each other and, therefore, uncorrelated. This reduction in multicollinearity not only stabilizes and simplifies the model but also enhances its interpretability and generalizability [@altman2018curse].
+```{r}
+library(car)
+data_df <-data.frame(data_transform)
+model <- lm(Heart_Disease ~ ., data=data_df)
+
+data.frame(VIF=vif(model))
+```
+
+Lastly, the impact of transforming certain variables using the Box-Cox transformation resulted in an improvement by retaining more information. This is apparent by the higher explained variance.
 ```{r}
 # conduct PCA on the original untransformed dataset
 pca_result_original <- prcomp(data, center=TRUE, scale.=TRUE)
 pca_summary_original <- summary(pca_result_original)
 importance_original <- as.data.frame(pca_summary_original$importance)
-importance_original <- t(importance_original)
-colnames(importance_original) <- c("Std Dev", "Proportion", "Cumulative Var")
+importance_original <- as.data.frame(t(importance_original))
+importance_original$Eigenvalues <- pca_result_original$sdev^2
+colnames(importance_original) <- c("Std Dev", "Proportion", "Cumulative Variance", "Eigenvalues")
+importance_original <- importance_original[, c("Std Dev", "Eigenvalues", "Proportion", "Cumulative Variance")] # rearrange
 
 importance <- as.data.frame(importance)
 importance$PC <- rownames(importance)
@@ -378,7 +423,7 @@ rownames(combined_results) <- NULL
 combined_results$PC <- factor(combined_results$PC)
 
 ggplot(combined_results, aes(x=PC, y=`Cumulative Var`, color=name, group=name)) +
-  geom_line(size=1.1) +
+  geom_line(linewidth=1.1) +
   labs(title = "Comparison of Cumulative Variance",
        x = "Principal Component",
        y = "Cumulative Variance") +
@@ -386,58 +431,6 @@ ggplot(combined_results, aes(x=PC, y=`Cumulative Var`, color=name, group=name)) 
   scale_color_manual(values = c("black", "#215B9D")) +
   scale_x_discrete()
 ```
-
-View the eigenvalues - loadings components:  
-```{r}
-eigenvalues <- (pca_result$sdev)^2
-eigenvalues
-```
-Eigenvectors:  
-```{r}
-eigenvectors <- pca_result$rotation
-eigenvectors
-```
-
-
-Screeplot
-```{r}
-plot(pca_result, type = "l", col = "#215B9D", lwd = 2)
-```
-Elbow method
-
-
-Biplot  
-Instead of printing the loadings in a tabular format, it can be helpful to leverage a biplot to visually reveal the individual contributions. The points on the graph are the original data points projected on the first two principal component axes. The vectors (or arrows) are the contribution of each of the original variables to the principal components. 
-
-Arrow direction: Variables that are orientated in the same direction or in the complete opposite direction are correlated in the positive or negative direction, respectively. This indicates a redunacy in information which PCA can help reduce.  
-Arrow magnitude: The length of the arrow signals the magnitude in which the original variable contributes to the PC. 
-```{r}
-autoplot(pca_result, 
-         data = data_transform,
-         colour = 'grey',
-         loadings = TRUE,
-         loadings.colour = '#215B9D',
-         loadings.label = TRUE,
-         loadings.label.colour = 'black', 
-         loadings.label.size = 3) + 
-  theme_minimal() +
-  theme(legend.position = "none"
-)
-```
-From the results, it's clear that Poverty_Percent and Food_index are negatively correlated and contribute redunant information to the dataset. Additional groups can be found such as obesity_age_adj and Diabetes which are positively correlated; Heart_Disease, Smoking_Rate, and Cancer; and so on. The biplot provides valuable information to understand these relationships.
-
-Multicollinearity
-PCA aids in building more robust statistical models by reducing multicollinearity by eliminating redunant information. If we were to model this dataset and arbitrarily choose a y-variable such as Heart_Disease, we can inspect the collinearity prior to PCA.
-
-Compare VIF (variance inflation factor) before PCA:
-```{r}
-library(car)
-data_df <-data.frame(data_transform)
-model <- lm(Heart_Disease ~ ., data=data_df)
-
-data.frame(VIF=vif(model))
-```
-Just as the biplot indicated, multicollinearity exists between obesity_age_adj and Diabetes. After implementing PCA, the principal components are orthogonal to each other and have no correlation. Reducing multicollinearity improves the model's stability, interpretability, and generalizability by simplifying it.
 
 ## Application 2: Image Compression  
 

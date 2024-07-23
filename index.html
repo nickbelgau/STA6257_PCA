@@ -3331,7 +3331,6 @@ Project the data onto the selected principal components. This yields the new sub
 <h4 class="anchored" data-anchor-id="data-standardization">3. Data standardization</h4>
 <p><strong>Assumption</strong>: There are three critical preprocessing steps: scaling, mean-centering, and outlier handling. Scaling standardizes the variance of each variable to ensure equal contributions. Mean-centering has a similar impact: ensuring that the principal components capture the true direction of maximum variance. Outliers can also distort the principal components, so they should be identified and handled appropriately. Together these methods prevent variables with larger measured values from dominating the principal components and skewing results.</p>
 <p><strong>Testing</strong>: Data will usually not arrive in a condition that meets this requirement. Luckily, statistical packages in common programming languages offer simple methods to scale and mean-center data. Outliers can be detected using a variety of distribution plots, but automated methods could be employed for larger datasets which is beyond the scope of this paper.</p>
-<p>! need to add Varimax, and what loadings are</p>
 </section>
 </section>
 </section>
@@ -3360,7 +3359,7 @@ Project the data onto the selected principal components. This yields the new sub
 </div>
 <section id="dataset-description" class="level3">
 <h3 class="anchored" data-anchor-id="dataset-description">Dataset Description</h3>
-<p>The dataset contains demographic, health, and environmental metrics for counties in the United States. Each row represents data for a specific county of a state. The columns analyzed were:<br>
+<p>The dataset contains demographic, health, and environmental metrics for counties in the United States. Each row represents data for a specific county of a state <span class="citation" data-cites="tejada_vera_2013">(<a href="#ref-tejada_vera_2013" role="doc-biblioref">Tejada-Vera 2013</a>)</span> <span class="citation" data-cites="amin_2018">(<a href="#ref-amin_2018" role="doc-biblioref">Amin, Yacko, and Guttmann 2018</a>)</span>. The columns analyzed were:<br>
 - obesity_age_adj: Age-adjusted obesity rate.<br>
 - Smoking_Rate: Rate of smoking within the population.<br>
 - Diabetes: Diabetes prevalence rate.<br>
@@ -4322,7 +4321,7 @@ Arrow magnitude: The length of the arrow signals the magnitude in which the orig
 </div>
 </div>
 </div>
-<p>From the results, it’s clear that Poverty_Percent and Food_index are negatively correlated and contribute redunant information to the dataset. Additional groups can be found such as obesity_age_adj and Diabetes which are positively correlated; Heart_Disease, Smoking_Rate, and Cancer; and so on. The biplot provides valuable information to understand these relationships.</p>
+<p>From the results, it’s clear that Food_index is negatively correlated to obesity_age_adj and Diabetes which contributes redunant information to the dataset. Additional positively correlated groups are found due to the small angle between the vectors: Mercuryy_TPY and Lead_TPY; Heart_Disease, Smoking_Rate, and Poverty; and so on. The biplot provides valuable information to understand these relationships.</p>
 <p>Multicollinearity PCA aids in building more robust statistical models by reducing multicollinearity by eliminating redunant information. If we were to model this dataset and arbitrarily choose a y-variable such as Heart_Disease, we can inspect the collinearity prior to PCA.</p>
 <p>Compare VIF (variance inflation factor) before PCA:</p>
 <div class="cell">
@@ -4368,6 +4367,9 @@ Ali, Ibrahim, Khaled Wassif, and Hanaa Bayomi. 2024. <span>“Dimensionality Red
 <div id="ref-altman2018curse" class="csl-entry" role="listitem">
 Altman, Naomi, and Martin Krzywinski. 2018. <span>“The Curse(s) of Dimensionality.”</span> <em>Nature Methods</em> 15 (6): 397–400. <a href="https://doi.org/10.1038/s41592-018-0019-x">https://doi.org/10.1038/s41592-018-0019-x</a>.
 </div>
+<div id="ref-amin_2018" class="csl-entry" role="listitem">
+Amin, R. W., E. M. Yacko, and R. P. Guttmann. 2018. <span>“Geographic Clusters of Alzheimer’s Disease Mortality Rates in the USA: 2008-2012.”</span> <em>Journal of Prevention of Alzheimer’s Disease (JPAD)</em> 3.
+</div>
 <div id="ref-bharadiya2023tutorial" class="csl-entry" role="listitem">
 Bharadiya, Jasmin Praful. 2023. <span>“A Tutorial on Principal Component Analysis for Dimensionality Reduction in Machine Learning.”</span> <em>International Journal of Innovative Research in Science Engineering and Technology</em> 8 (5): 2028–32. <a href="https://doi.org/10.5281/zenodo.8002436">https://doi.org/10.5281/zenodo.8002436</a>.
 </div>
@@ -4391,6 +4393,9 @@ Rahayu, S., T. Sugiarto, L. Madu, Holiawati, and A. Subagyo. 2017. <span>“Appl
 </div>
 <div id="ref-richardson2009pca" class="csl-entry" role="listitem">
 Richardson, Michael. 2009. <em>Principal Component Analysis</em>. <a href="http://www.dsc.ufcg.edu.br/~hmg/disciplinas/posgraduacao/rn-copin-2014.3/material/SignalProcPCA.pdf">http://www.dsc.ufcg.edu.br/~hmg/disciplinas/posgraduacao/rn-copin-2014.3/material/SignalProcPCA.pdf</a>.
+</div>
+<div id="ref-tejada_vera_2013" class="csl-entry" role="listitem">
+Tejada-Vera, Betzaida. 2013. <span>“Mortality from Alzheimer’s Disease in the United States: Data for 2000 and 2010.”</span> <em>NCHS Data Brief</em>, no. 116: 1–8.
 </div>
 </div></section></div></main>
 <!-- /main column -->

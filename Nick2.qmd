@@ -1,0 +1,168 @@
+---
+title: "Practical Implementations of Principal Component Analysis"
+author: "Nick Belgau, Oscar Hernandez Mata"
+date: '`r Sys.Date()`'
+format:
+  html:
+    code-fold: true
+course: STA 6257 - Advanced Statistical Modeling
+bibliography: references.bib # file contains bibtex for references
+#always_allow_html: true # this allows to get PDF with HTML features
+self-contained: true
+execute: 
+  warning: false
+  message: false
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+
+## Application 1 - Analysis and Results
+
+Load the required libaries:
+```{r}
+library(readxl)
+library(skimr)
+library(dplyr)
+library(readr)
+library(ggplot2)
+library(GGally)
+library(corrplot)
+library(DescTools)
+library(reshape2)
+library(factoextra)
+library(kableExtra)
+library(rrcov)
+library(psych)
+library(stats)
+library(ggfortify)
+```
+
+### Dataset Description
+
+The dataset contains demographic, health, and environmental metrics for counties in the United States. Each row represents data for a specific county of a state. The columns analyzed were:  
+- obesity_age_adj: Age-adjusted obesity rate.  
+- Smoking_Rate: Rate of smoking within the population.  
+- Diabetes: Diabetes prevalence rate.  
+- Heart_Disease: Heart disease prevalence rate.  
+- Cancer: Cancer prevalence rate.  
+- Food Index: Index score representing food availability and quality.  
+- Poverty_Percent: Percentage of the population living below the poverty line.  
+- physical_inactivity: Rate of physical inactivity.  
+- Mercury_TPY: Mercury emissions in tons per year.  
+- Lead_TPY: Lead emissions in tons per year.  
+- Atrazine_High_KG: Atrazine in KG per year.  
+
+```{r}
+url <- "https://raw.githubusercontent.com/nickbelgau/STA6257_PCA/main/data/Alz_mortality_data_complete_with_state_csv.csv"
+data_raw <- read_csv(url)
+```
+
+### Filtered Dataset and Inspection  
+
+The dataset was filtered to analyze only selected variables for states in the deep south in the United States. The county and state columns were removed, creating 1 entire region on the dataset. Columns were selected to remove demographic fields related to gender, sex, and race and ambigious fields related to grouping.
+
+```{r}
+selected_columns <- c(
+  "County", "State", "obesity_age_adj", "Smoking_Rate", "Diabetes", "Heart_Disease", "Cancer",  "Mercury_TPY", "Lead_TPY", "Food_index", "Poverty_Percent", "Atrazine_High_KG", "SUNLIGHT"
+)
+
+deep_south_states <- c("AL", "AR", "FL", "GA", "LA", "MS", "NC", "SC", "TN", "TX", "VA")
+
+data <- data_raw %>%
+  filter(State %in% deep_south_states) %>%
+  dplyr::select(all_of(selected_columns))
+
+data <- data %>%
+  dplyr::select(-County, -State)
+```
+
+```{r}
+columns_to_transform <- c("Lead_TPY", "Mercury_TPY", "Atrazine_High_KG")
+library(MASS)
+
+box_cox_transform <- function(df, columns) {
+  transformed_df <- df
+  lambdas <- list()
+  for (col in columns) {
+    col_data <- df[[col]]
+    col_data[col_data <= 0] <- min(col_data[col_data > 0]) / 2
+    bc <- boxcox(col_data ~ 1, plotit=FALSE)
+    lambda <- bc$x[which.max(bc$y)]
+    transformed_df[[col]] <- (col_data^lambda - 1) / lambda
+    lambdas[[col]] <- lambda
+  }
+  return(list(transformed_df, lambdas))
+}
+
+result <- box_cox_transform(data, columns_to_transform)
+data_transform <- result[[1]]
+```
+### Run Principal Component Analysis
+
+The prcomp() function allows parameters to scale and mean-center at the time of executing PCA.
+```{r}
+pca_result_transform <- prcomp(data_transform, center=TRUE, scale.=TRUE)
+pca_summary_transform <- summary(pca_result_transform)
+importance_transform <- as.data.frame(pca_summary_transform$importance)
+importance_transform <- t(importance_transform) # transpose to make cleaner
+colnames(importance_transform) <- c("Std Dev", "Proportion", "Cumulative Var")
+importance_transform
+```
+
+
+```{r}
+
+# Organize the eigenvectors (loadings) into a dataframe
+eigenvectors <- pca_result_transform$rotation
+eigenvectors_df <- as.data.frame(eigenvectors)
+eigenvectors_df$Variable <- rownames(eigenvectors_df)
+
+# Print the eigenvectors
+print("Eigenvectors:")
+print(eigenvectors_df)
+
+```
+The Eigenvalues reveal that the first factor is strong; its eigenvalue 
+of approximately 3.7 accounts for a 33% proportion of the variance. The second factor, with an 
+eigenvalue of approximately 1.8, is much smaller, contributing less to the variance explanation. 
+Factor 2 adds 16%, totaling 50% of the variance explained. Moreover, Factor 3 has an approximate 
+eigenvalue equal to 1.5, thus contributing 14% to the variance explanation. The results suggest that 
+Factor 1, Factor 2, and Factor 3 combined summarize much of the information contained in the 
+ten measurements (64% of the variance explained). 
+
+Next, I searched for variables with high loadings, where typically absolute values greater 
+than 0.5 are considered significant. PC1 seems to capture the overall health and socioeconomic status, with higher values associated with higher rates of obesity, smoking, diabetes, heart disease, cancer, and poverty, and lower values associated with better food index scores.On the other hand, PC2 appears to capture environmental pollution factors, with higher negative values associated with higher emissions of mercury and lead. In addtion, PC3 also reflects health and socioeconomic factors but with different associations compared to PC1, indicating the complexity and multiple dimensions of these variables.
+
+
+PCA with Varimax Rotation 
+
+Varimax, developed by Kaiser in 1958, is the most widely used rotation method in principal component analysis (PCA). The goal of varimax rotation is to achieve a simpler and more interpretable structure by maximizing the variance of the loadings for each principal component. This means that, after applying varimax rotation, each principal component will ideally have a few large loadings and many near-zero loadings.This simplification makes interpretation easier because each original variable tends to be strongly associated with one or a small number of principal components, and each principal component is defined by a small number of significant variables. Often, principal components can be understood by considering the contrast between a few variables with high positive loadings and a few with high negative loadings.
+In technical terms, varimax searches for a rotation (a linear combination) of the original principal components that maximizes the variance of the squared loadings. This process helps in identifying distinct patterns and relationships within the data, making the results more interpretable and meaningful (Abdi 2003).
+
+```{r}
+pca_with_rotation <- principal(data_transform, nfactors = 3, rotate = "varimax", scores = TRUE)
+
+# Summary of PCA with rotation
+print(pca_with_rotation)
+
+# Plot the proportion of variance explained
+fa.diagram(pca_with_rotation)
+```
+
+We conducted an orthogonal rotation of the 3 factors in order to make the factor structure easier 
+to understand. We searched for variables with high loadings, where typically absolute values greater 
+than 0.5 are considered significant. RC1 appears to be strongly associated with health and socioeconomic factors such as obesity, diabetes, smoking rates, cancer rates, poverty, and food index. It captures a dimension related to general health and socioeconomic status, with negative loadings on food index indicating that better food access is inversely related to other health and socioeconomic issues. Conversely, RC2 is strongly associated with environmental pollution factors, specifically mercury and lead emissions. It seems to capture the environmental pollution dimension. Moreover, RC3 is strongly associated with health factors such as smoking rates, heart disease, and cancer rates. It captures a dimension specifically related to health risks.
+
+## Application 2: Image Compression  
+
+New example.
+No scree plot or biplot because pixels.
+Results to focus on memory reduction and maintaining equivalent level of performance.
+This will be similar to appl 1 + 2 but without going into as much detail for techniques already demonstrated.
+
+## Conclusion  
+
+Summary, reflections, future discissions
+
