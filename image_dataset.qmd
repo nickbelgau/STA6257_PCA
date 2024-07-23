@@ -1,0 +1,48 @@
+---
+title: "Sandbox - PCA with Image Dataset "
+author: "Nick Belgau, Oscar Hernandez Mata"
+date: '`r Sys.Date()`'
+format:
+  html:
+    code-fold: true
+
+self-contained: true
+execute: 
+  warning: false
+  message: false
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+
+## Application 2 - Analysis and Results
+Image Dataset, image compression
+
+Load the required libaries:
+```{r}
+library(readxl)
+library(skimr)
+library(dplyr)
+library(readr)
+library(ggplot2)
+library(GGally)
+library(corrplot)
+library(DescTools)
+library(reshape2)
+library(factoextra)
+library(kableExtra)
+library(rrcov)
+library(psych)
+library(stats)
+library(ggfortify)
+```
+
+```{r}
+url <- "https://raw.githubusercontent.com/nickbelgau/STA6257_PCA/main/data/Alz_mortality_data_complete_with_state_csv.csv"
+data_raw <- read_csv(url)
+```
+
+
+### Principal Component Analysis
+
