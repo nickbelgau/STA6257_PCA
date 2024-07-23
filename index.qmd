@@ -126,7 +126,7 @@ library(car)
 
 ### Dataset Description
 
-The dataset contains demographic, health, and environmental metrics for counties in the United States. Each row represents data for a specific county of a state [@tejada_vera_2013] [@amin_2018]. The columns analyzed were:  
+The dataset contains demographic, health, and environmental metrics for counties in the United States from US census data. Each row represents data for a specific county of a state [@tejada_vera_2013] [@amin_2018]. The columns analyzed were:  
 - obesity_age_adj: Age-adjusted obesity rate.  
 - Smoking_Rate: Rate of smoking within the population.  
 - Diabetes: Diabetes prevalence rate.  
@@ -338,7 +338,7 @@ corrplot(abs(cor_matrix), method = "color",
 )
 ```
 
-### Run Principal Component Analysis
+### Principal Component Analysis
 
 The prcomp() function allows parameters to scale and mean-center at the time of executing PCA.
 ```{r}
@@ -349,7 +349,7 @@ importance <- as.data.frame(t(importance)) # transpose to make cleaner
 
 importance$Eigenvalues <- pca_result$sdev^2
 colnames(importance) <- c("Std Dev", "Proportion", "Cumulative Variance", "Eigenvalues")
-importance <- importance[, c("Std Dev", "Eigenvalues", "Proportion", "Cumulative Variance")] # rearrange
+importance <- importance[, c("Std Dev", "Eigenvalues", "Proportion", "Cumulative Variance")] # rearrangeo
 importance
 ```
 In PCA, the target explained variance is decided after acknowleding a trade-off between information retention and dimensionality reduction; common practice is to aim for 70-95%. The first principal component captures a substantial underlying pattern in the dataset, accounting for over 33% of the explained variance. The first few components are crucial for capturing the major variance in the data. Later components appear to represent more refined details in the data, tapering off until finally 95% variance is obtained by the ninth principal component.  
@@ -359,9 +359,8 @@ The scree plot shows an elbow at the fourth principal component, indicating a po
 plot(pca_result, type = "l", col = "#215B9D", lwd = 2)
 ```
 
-Eigenvectors, or loadings, represent the weight of each of the original variables in the linear combination to form the new principal components. Loadings close to -1 or 1 means the original variable has a significant contribution.  
+Eigenvectors, or loadings, represent the weight of each of the original variables in the linear combination to form the new principal components. Loadings close to -1 or 1 means the original variable has a significant contribution. The loadings can be summarized by principal component to reveal interesting  structure to the data.  
 
-The loadings can be summarized by principal component to reveal interesting  structure to the data.  
 **PC1**: Strong positive loadings for obesity_age_adj, Smoking_Rate, Diabetes, Heart_Disease, Cancer, and Poverty_Percent, likely represents general health and lifestyle factors. This component suggests that increases in these variables correlate with poorer health outcomes.     
 **PC2**: Strong negative loadings for Mercury_TPY and Lead_TPY, indicating association with environmental exposure. Higher exposure levels will cause the score on this PC to decrease due to the sign of the loading value.  
 **PC3**: While SUNLIGHT has the highest loading and positive contribution to this PC score, the relationship between Food_index and Poverty_index is interesting. These two variables are negatively correlated which means as access to higher quality food decreases, poverty level will increase and in turn both of these factors will reduce the score of this principal component.  
@@ -435,12 +434,11 @@ ggplot(combined_results, aes(x=PC, y=`Cumulative Variance`, color=name, group=na
  
 ## Application 2: Image Compression  
 
-New example.
-No scree plot or biplot because pixels.
-Results to focus on memory reduction and maintaining equivalent level of performance.
-This will be similar to appl 1 + 2 but without going into as much detail for techniques already demonstrated.
+..
 
 ## Conclusion  
 
-Summary, reflections, future discissions
+In summary, Principal Component Analysis has proven invaluable in reducing the dimensionality of complex datasets, allowing for clearer visualization and interpretation of the underlying structures. This technique transforms original variables into uncorrelated principal components, effectively capturing the most significant patterns in the data while mitigating issues such as multicollinearity and overfitting. Despite its limitations, including sensitivity to outliers and potential information loss from nonlinear relationships, PCA remains a crucial tool in various applications. These include image compression, signal processing, and machine learning pipelines, resulting in improved model performance and computational efficiency.
+
+Applying PCA to a sample dataset, which includes demographic, health, and environmental metrics for counties in the deep south of the United States, revealed that the first four principal components explain 72% of the variance. PC1 is heavily loaded with health and socioeconomic variables, indicating a general health status dimension. PC2 captures environmental pollution factors, specifically emissions of mercury and lead, while PC3 reflects additional health and socioeconomic complexities. This analysis underscores PCA's ability to distill vast amounts of information into comprehensible insights, facilitating more effective data-driven decision-making.
 

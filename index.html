@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Nick Belgau, Oscar Hernandez Mata">
-<meta name="dcterms.date" content="2024-07-22">
+<meta name="dcterms.date" content="2024-07-23">
 
 <title>Practical Implementations of Principal Component Analysis</title>
 <style>
@@ -3262,7 +3262,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">July 22, 2024</p>
+      <p class="date">July 23, 2024</p>
     </div>
   </div>
   
@@ -3361,7 +3361,7 @@ Project the data onto the selected principal components. This yields the new sub
 </div>
 <section id="dataset-description" class="level3">
 <h3 class="anchored" data-anchor-id="dataset-description">Dataset Description</h3>
-<p>The dataset contains demographic, health, and environmental metrics for counties in the United States. Each row represents data for a specific county of a state <span class="citation" data-cites="tejada_vera_2013">(<a href="#ref-tejada_vera_2013" role="doc-biblioref">Tejada-Vera 2013</a>)</span> <span class="citation" data-cites="amin_2018">(<a href="#ref-amin_2018" role="doc-biblioref">Amin, Yacko, and Guttmann 2018</a>)</span>. The columns analyzed were:<br>
+<p>The dataset contains demographic, health, and environmental metrics for counties in the United States from US census data. Each row represents data for a specific county of a state <span class="citation" data-cites="tejada_vera_2013">(<a href="#ref-tejada_vera_2013" role="doc-biblioref">Tejada-Vera 2013</a>)</span> <span class="citation" data-cites="amin_2018">(<a href="#ref-amin_2018" role="doc-biblioref">Amin, Yacko, and Guttmann 2018</a>)</span>. The columns analyzed were:<br>
 - obesity_age_adj: Age-adjusted obesity rate.<br>
 - Smoking_Rate: Rate of smoking within the population.<br>
 - Diabetes: Diabetes prevalence rate.<br>
@@ -4149,8 +4149,8 @@ Atrazine_High_KG    0.1</code></pre>
 </div>
 </div>
 </section>
-<section id="run-principal-component-analysis" class="level3">
-<h3 class="anchored" data-anchor-id="run-principal-component-analysis">Run Principal Component Analysis</h3>
+<section id="principal-component-analysis" class="level3">
+<h3 class="anchored" data-anchor-id="principal-component-analysis">Principal Component Analysis</h3>
 <p>The prcomp() function allows parameters to scale and mean-center at the time of executing PCA.</p>
 <div class="cell">
 <details class="code-fold">
@@ -4195,9 +4195,8 @@ PC11 0.3630131   0.1317785    0.01198             1.00000</code></pre>
 </div>
 </div>
 </div>
-<p>Eigenvectors, or loadings, represent the weight of each of the original variables in the linear combination to form the new principal components. Loadings close to -1 or 1 means the original variable has a significant contribution.</p>
-<p>The loadings can be summarized by principal component to reveal interesting structure to the data.<br>
-<strong>PC1</strong>: Strong positive loadings for obesity_age_adj, Smoking_Rate, Diabetes, Heart_Disease, Cancer, and Poverty_Percent, likely represents general health and lifestyle factors. This component suggests that increases in these variables correlate with poorer health outcomes.<br>
+<p>Eigenvectors, or loadings, represent the weight of each of the original variables in the linear combination to form the new principal components. Loadings close to -1 or 1 means the original variable has a significant contribution. The loadings can be summarized by principal component to reveal interesting structure to the data.</p>
+<p><strong>PC1</strong>: Strong positive loadings for obesity_age_adj, Smoking_Rate, Diabetes, Heart_Disease, Cancer, and Poverty_Percent, likely represents general health and lifestyle factors. This component suggests that increases in these variables correlate with poorer health outcomes.<br>
 <strong>PC2</strong>: Strong negative loadings for Mercury_TPY and Lead_TPY, indicating association with environmental exposure. Higher exposure levels will cause the score on this PC to decrease due to the sign of the loading value.<br>
 <strong>PC3</strong>: While SUNLIGHT has the highest loading and positive contribution to this PC score, the relationship between Food_index and Poverty_index is interesting. These two variables are negatively correlated which means as access to higher quality food decreases, poverty level will increase and in turn both of these factors will reduce the score of this principal component.<br>
 <strong>PC4</strong>: This PC is largely influenced by the chemical Atrazine and has some correlation to Cancer. This could point towards a link between agricultural practices and these variables.</p>
@@ -4320,11 +4319,12 @@ SUNLIGHT         1.227205</code></pre>
 </section>
 <section id="application-2-image-compression" class="level2">
 <h2 class="anchored" data-anchor-id="application-2-image-compression">Application 2: Image Compression</h2>
-<p>New example. No scree plot or biplot because pixels. Results to focus on memory reduction and maintaining equivalent level of performance. This will be similar to appl 1 + 2 but without going into as much detail for techniques already demonstrated.</p>
+<p>..</p>
 </section>
 <section id="conclusion" class="level2">
 <h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
-<p>Summary, reflections, future discissions</p>
+<p>In summary, Principal Component Analysis has proven invaluable in reducing the dimensionality of complex datasets, allowing for clearer visualization and interpretation of the underlying structures. This technique transforms original variables into uncorrelated principal components, effectively capturing the most significant patterns in the data while mitigating issues such as multicollinearity and overfitting. Despite its limitations, including sensitivity to outliers and potential information loss from nonlinear relationships, PCA remains a crucial tool in various applications. These include image compression, signal processing, and machine learning pipelines, resulting in improved model performance and computational efficiency.</p>
+<p>Applying PCA to a sample dataset, which includes demographic, health, and environmental metrics for counties in the deep south of the United States, revealed that the first four principal components explain 72% of the variance. PC1 is heavily loaded with health and socioeconomic variables, indicating a general health status dimension. PC2 captures environmental pollution factors, specifically emissions of mercury and lead, while PC3 reflects additional health and socioeconomic complexities. This analysis underscores PCA’s ability to distill vast amounts of information into comprehensible insights, facilitating more effective data-driven decision-making.</p>
 
 </section>
 
