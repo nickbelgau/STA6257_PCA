@@ -122,7 +122,6 @@ library(stats)
 library(ggfortify)
 library(lmtest)
 library(car)
-library(MASS)
 ```
 
 ### Dataset Description
@@ -161,7 +160,7 @@ data <- data_raw %>%
   select(all_of(selected_columns))
 
 data <- data %>%
-  dplyr::select(-County, -State)
+  select(-County, -State)
 ```
 
 The variables appear to be continuous because the data types are "numeric" with high cardinality. There are no nulls. It is clear that scaling and mean-centering will be needed.  
@@ -281,6 +280,8 @@ for (col in columns_to_transform) {
 
 The Box-Cox transformation is a robust statistical method that normalizes the data distribution, enhancing its suitability for PCA [@compression2014boxcox]. It is considered best practice to apply such transformations to columns selectively rather than on the entirety of the dataset. Automating this process can be achieved by setting a kurtosis threshold.Additionally, negative values must be carefully managed to ensure the Box-Cox transformation is correctly implemented. 
 ```{r}
+library(MASS)
+
 box_cox_transform <- function(df, columns) {
   transformed_df <- df
   lambdas <- list()
@@ -422,7 +423,7 @@ combined_results <- rbind(importance, importance_original)
 rownames(combined_results) <- NULL
 combined_results$PC <- factor(combined_results$PC)
 
-ggplot(combined_results, aes(x=PC, y=`Cumulative Var`, color=name, group=name)) +
+ggplot(combined_results, aes(x=PC, y=`Cumulative Variance`, color=name, group=name)) +
   geom_line(linewidth=1.1) +
   labs(title = "Comparison of Cumulative Variance",
        x = "Principal Component",
@@ -431,7 +432,7 @@ ggplot(combined_results, aes(x=PC, y=`Cumulative Var`, color=name, group=name)) 
   scale_color_manual(values = c("black", "#215B9D")) +
   scale_x_discrete()
 ```
-
+ 
 ## Application 2: Image Compression  
 
 New example.
