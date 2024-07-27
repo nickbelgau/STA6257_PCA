@@ -1,6 +1,8 @@
 ---
-title: "Shivani"
+title: "Principal Component Analysis"
+author: "Shivani"
 format: html
+course: STA 6257 - Advanced Statistical Modeling
 editor: visual
 ---
 
@@ -70,13 +72,6 @@ df_new %>% gather() %>% ggplot(aes(value)) +
 ```
 
 ```{r}
-library(MASS)
-library(dplyr)
-df <- df + 1
-df_TF <- as.data.frame(lapply(df, function(x) boxcox(x)$x))
-
-```
-```{r}
 df <- scale(df_new)
 cat("mean:", round(mean(df), 2), "\n")
 cat("standard dev:", round(sd(df), 2), "\n")
@@ -113,58 +108,10 @@ three <- sort(vects[, 3], decreasing = TRUE)
 four <- sort(vects[, 4], decreasing = TRUE)
 five <- sort(vects[, 5], decreasing = TRUE)
 
-pca_df %>% arrange(c1) %>% slice(1:500) %>% count(FoodGroup)
-pca_df %>% arrange(c2) %>% slice(1:500) %>% count(FoodGroup)
-pca_df %>% arrange(c3) %>% slice(1:500) %>% count(FoodGroup)
-pca_df %>% arrange(c4) %>% slice(1:500) %>% count(FoodGroup)
-pca_df %>% arrange(c5) %>% slice(1:500) %>% count(FoodGroup)
-
 ```
 
 
 
-```{r}
-data_omit_na <- na.omit(data)
-#summary(data_omit_na)
-
-data_sample <- data_omit_na[,8:18]
-
-str(data_sample)
-data_pca <- prcomp(data_sample , scale = TRUE)
-
-summary(data_pca)
-names(data_pca)
-```
-
-```{r}
-data_pca$sdev
-
-data_pca$rotation
-
-
-
-```
-```{r}
-data_pca$center
-data_pca$scale
-
-```
-```{r}
-data_pca$x
-```
-
-
-```{r}
-fviz_eig(data_pca , 
-         addlabels = TRUE
-         )
-```
-```{r}
-#fviz_pca_biplot(data_pca)
-fviz_pca_biplot(data_pca,
-                label = "var")
-
-```
 
 
 
