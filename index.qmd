@@ -434,8 +434,10 @@ ggplot(combined_results, aes(x=PC, y=`Cumulative Variance`, color=name, group=na
   scale_x_discrete()
 ```
  
-## Application 2: Image Compression  
-Don't use PCA for image classification. Use neural networks.[need sources]
+## Application 2: Image Compression & Classification  
+Don't use PCA for image classification. Use neural networks.[need sources]  
+
+Don't use PCa for image compression, use JPEG or other
 
 ```{r}}
 library(reticulate)
@@ -622,8 +624,28 @@ The CNN was trained and evaluated, achieving a higher accuracy of 0.741 on the t
 The CNN's prediction time was also evaluated, showing efficient performance.
 Conclusion:
 
-While PCA combined with SVM offers dimensionality reduction and faster predictions, CNNs outperform both in accuracy and practical application for image classification tasks.
-CNNs' ability to learn complex patterns and adapt to real-time applications makes them superior for modern image processing needs.
+```{python}
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+
+model_cnn = Sequential([
+    Input(shape=(32, 32, 3)),
+    Conv2D(32, 3, padding='valid', activation='relu'),
+    MaxPooling2D(pool_size=(2, 2)),
+    Dropout(0.25),
+    Conv2D(64, 3, activation='relu'),
+    MaxPooling2D(pool_size=(2, 2)),
+    Dropout(0.25),
+    Conv2D(128, 3, activation='relu'),
+    Flatten(),
+    Dense(64, activation='relu'),
+    Dropout(0.50),
+    Dense(10, activation='softmax'),
+])
+
+print(model_cnn.summary())
+```
 
 Load model:  
 ```{python}
@@ -642,10 +664,25 @@ print(f"Test Accuracy: {round(test_accuracy, 3)}")
 evaluate_prediction_time(model_cnn, X_test)
 
 ```
+While PCA combined with SVM offers dimensionality reduction and faster predictions, CNNs outperform both in accuracy and practical application for image classification tasks.
 
-CNNs are superior for image classification due to their ability to learn high-level features directly from data, adapt to complex patterns, and perform efficiently in real-time applications, including on IoT devices. While PCA + SVM might still be used for less complex or highly specific tasks where training data is limited or when computational simplicity is prioritized, CNNs are the standard for most current image processing tasks. This difference is crucial in educational settings, emphasizing the need to train students on technologies that they are most likely to use in industry, particularly in cutting-edge fields like machine learning and computer vision.
+Cnns are faster:
+CNNs are specifically designed for image data and leverage convolutional layers that apply filters to capture spatial hierarchies in images. CNNs are generally more complex in terms of architecture but are highly optimized for parallel processing. This makes them relatively faster at processing large volumes of image data once trained.
 
-This comparison illustrates the importance of using appropriate techniques for specific tasks. PCA with SVM may still be useful for simpler tasks or where computational resources are limited, but CNNs are the gold standard for most current image classification tasks.
+SVMs can be computationally intensive, especially if the kernel trick is used to handle non-linear classification. 
+The complexity in SVMs arises from the calculations needed to determine the support vectors during training and the decision function during prediction.
+
+Flattening leads to high computational costs.
+
+
+CNNs are superior for image classification due to their ability to learn high-level features directly from data, adapt to complex patterns, and perform efficiently in real-time applications, including on IoT devices. 
+
+machine vision
+
+TABLE OF RESULTS
+
+EXPLAIN HOW CNN MUCH BETTER THAN PCA FOR IMAGE CLASSIFICATION
+ but CNNs are the gold standard for most current image classification tasks.
 
 ## Conclusion  
 
