@@ -613,8 +613,6 @@ evaluate_prediction_time(model_svm, X_test_flat)
 evaluate_prediction_time(model_svm_pca, X_test_pca)
 ```
 
-Two SVM models were trained: one on the original flattened data and one on the PCA-transformed data.
-Accuracy on the test set for SVM on original data was 0.336, and on PCA-transformed data, it was 0.313.
 Prediction times were evaluated, highlighting the speed advantage of PCA-transformed data.
 
 ### Convolutional Neural Network (CNN)
