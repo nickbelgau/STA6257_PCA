@@ -9,6 +9,8 @@ course: STA 6257 - Advanced Statistical Modeling
 bibliography: references.bib # file contains bibtex for references
 #always_allow_html: true # this allows to get PDF with HTML features
 self-contained: true
+engine:
+  python: "C:/Users/Belgau/AppData/Local/Programs/Python/Python310/python.exe"
 execute: 
   warning: false
   message: false
@@ -433,8 +435,50 @@ ggplot(combined_results, aes(x=PC, y=`Cumulative Variance`, color=name, group=na
 ```
  
 ## Application 2: Image Compression  
+```{r}}
+library(reticulate)
 
-..
+# Use reticulate to ensure TensorFlow is installed
+py_install("tensorflow", pip = TRUE)
+```
+Data Loading and Normalization:
+
+Data Loading and Transformation
+The CIFAR-10 dataset was loaded and normalized to have pixel values between 0 and 1.
+Training, validation, and test sets were created with the training set further split to include a validation set.
+Principal Component Analysis (PCA):
+```{python}
+
+import tensorflow as tf
+
+(X_train, y_train), (X_test, y_test) = tf.keras.datasets.cifar10.load_data()
+```
+
+Images were flattened from 32x32x3 to 1-dimensional vectors for PCA, resulting in 3072 features per image.
+
+PCa
+PCA was applied to retain 95% of the variance, reducing dimensionality significantly while maintaining image information.
+The explained variance plot showed the number of components required to reach this threshold.
+Visualization of PCA Impact:
+
+Original and PCA-reconstructed images were compared, illustrating that PCA retains substantial image quality despite compression.
+Support Vector Machine (SVM) Models:
+
+Two SVM models were trained: one on the original flattened data and one on the PCA-transformed data.
+Accuracy on the test set for SVM on original data was 0.336, and on PCA-transformed data, it was 0.313.
+Prediction times were evaluated, highlighting the speed advantage of PCA-transformed data.
+Convolutional Neural Network (CNN):
+
+A 9-layer CNN was built, including Conv2D, MaxPooling2D, and Dropout layers.
+The CNN was trained and evaluated, achieving a higher accuracy of 0.741 on the test set.
+The CNN's prediction time was also evaluated, showing efficient performance.
+Conclusion:
+
+While PCA combined with SVM offers dimensionality reduction and faster predictions, CNNs outperform both in accuracy and practical application for image classification tasks.
+CNNs' ability to learn complex patterns and adapt to real-time applications makes them superior for modern image processing needs.
+Practical Implications:
+
+This comparison illustrates the importance of using appropriate techniques for specific tasks. PCA with SVM may still be useful for simpler tasks or where computational resources are limited, but CNNs are the gold standard for most current image classification tasks.
 
 ## Conclusion  
 
