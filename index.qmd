@@ -436,37 +436,30 @@ ggplot(combined_results, aes(x=PC, y=`Cumulative Variance`, color=name, group=na
  
 ## Application 2: Image Compression & Classification  
 Don't use PCA for image classification. Use neural networks.[need sources]  
-
 Don't use PCa for image compression, use JPEG or other
 
 ```{r}}
-library(reticulate)
+# library(reticulate)
+# # Use reticulate to ensure TensorFlow is installed
+# py_install("tensorflow", pip = TRUE)
+# py_install("pydot", pip = TRUE)
+# py_install("graphviz", pip = TRUE)
 
-# Use reticulate to ensure TensorFlow is installed
-py_install("tensorflow", pip = TRUE)
+py_install("ann_visualizer", pip = TRUE)
 ```
-Data Loading and Normalization:
+### Data Loading and Normalization:
 
-Data Loading and Transformation
 The CIFAR-10 dataset was loaded and normalized to have pixel values between 0 and 1.
 Training, validation, and test sets were created with the training set further split to include a validation set.
-
 ```{python}
 import tensorflow as tf
-```
+from sklearn.model_selection import train_test_split
 
-Load the data and normalize
-```{python}
 (X_train, y_train), (X_test, y_test) = tf.keras.datasets.cifar10.load_data()
 
 # Normalize the pixel values to range 0-1
 X_train = X_train.astype('float32') / 255
 X_test = X_test.astype('float32') / 255
-```
-
-Split the training data in a validation set.
-```{python}
-from sklearn.model_selection import train_test_split
 
 X_train, X_validate, y_train, y_validate = train_test_split(
     X_train, y_train, test_size=0.15, random_state=42)
@@ -474,24 +467,15 @@ X_train, X_validate, y_train, y_validate = train_test_split(
 
 
 ### Principal Component Analysis (PCA)  
-Flatten the images from 32x32 pixels with 3 color channels (n x 32x32x3 array) into a 2-D vector (n x 3072).  
-PCA requires a 2-dimensional input (samples x features).
+
+PCA requires a 2-dimensional input (samples x features). Flatten the images from 32x32 pixels with 3 color channels (n x 32x32x3 array) into a 2-D vector (n x 3072).  
 ```{python}
+from sklearn.decomposition import PCA
+
 # Flatten the X data
 X_train_flat = X_train.reshape((X_train.shape[0], -1))
 X_validate_flat = X_validate.reshape((X_validate.shape[0], -1))
 X_test_flat = X_test.reshape((X_test.shape[0], -1))
-
-print(X_train_flat.shape)
-print(X_validate_flat.shape)
-print(X_test_flat.shape)
-```
-
-PCA was applied to retain 95% of the variance, reducing dimensionality significantly while maintaining image information.
-The explained variance plot showed the number of components required to reach this threshold.
-Visualization of PCA Impact:
-```{python}
-from sklearn.decomposition import PCA
 
 # Initialize PCA and fit on the training data
 pca = PCA(n_components=0.95)
@@ -502,6 +486,8 @@ X_train_pca = pca.transform(X_train_flat)
 X_validate_pca = pca.transform(X_validate_flat)
 X_test_pca = pca.transform(X_test_flat)
 ```
+
+PCA was applied to retain 95% of the variance, reducing dimensionality significantly while maintaining image information. The explained variance plot showed the number of components required to reach this threshold.
 
 ```{python}
 import matplotlib.pyplot as plt
@@ -522,13 +508,12 @@ plt.grid(True)
 plt.annotate(f'components: {n_components}', 
              xy=(n_components, cumulative_variance[n_components-1]),  # This places the annotation at the point where the number of components is reached
              xytext=(n_components, cumulative_variance[n_components-1] - 0.10),  # Adjust text position
-             ha='center')  # Horizontal alignment
+             ha='center')
 
 plt.show()
 ```
 
 Original and PCA-reconstructed images were compared, illustrating that PCA retains substantial image quality despite compression.
-Support Vector Machine (SVM) Models:
 ```{python}
 import matplotlib.pyplot as plt
 
@@ -558,74 +543,72 @@ X_train_reconstructed = X_train_reconstructed.reshape((X_train.shape[0], 32, 32,
 plot_images(X_train, X_train_reconstructed, n=5) # plot first 5 images
 ```
 
+### Modeling: Support Vector Machine (SVM)
 
-Load the models and predictions:  
+SVM models were created using the flattened data
+kernel='rbf', C=1.0, gamma='scale'
+
+Load the models and predictions on test data  
 ```{python}
 import pickle
+from sklearn.metrics import accuracy_score
+import time
+import pandas as pd
 
 def load_pickle(path_pkl):
     with open(path_pkl, 'rb') as file:
         pickle_file = pickle.load(file)
     return pickle_file
 
-# load models
-model_svm_path = '../model/svm.pkl'
-model_svm = load_pickle(model_svm_path)
-
-model_svm_pca_path = '../model/svm_PCA.pkl'
-model_svm_pca = load_pickle(model_svm_pca_path)
-
-# load predictions
-svm_prediction_path = 'ml_result/test/prediction_svm.pkl'
-results_svm = load_pickle(svm_prediction_path)
-
-# test set PCA
-svm_pca_prediction_path = 'ml_result/test/prediction_svm_pca.pkl'
-results_svm_pca = load_pickle(svm_pca_prediction_path)
-```
-
-Calculate performance:  
-```{python}
-from sklearn.metrics import accuracy_score
-
-# load predictions
-preds_svm = load_pickle(svm_prediction_path)
-preds_svm_pca = load_pickle(svm_pca_prediction_path)
-
-# calculate accuracy
-accuracy_svm = round(accuracy_score(y_test, preds_svm), 3)
-print("Accuracy on original data:", accuracy_svm)
-accuracy_svm_pca = round(accuracy_score(y_test, preds_svm_pca), 3)
-print("Accuracy on PCA data:", accuracy_svm_pca)
-```
-Accuracy slightly decreases.
-
-```{python}
-import time
-
-# Evaluation function
 def evaluate_prediction_time(model, X_test, n=100):
     X_test = X_test[:n]
     start_time = time.time()
     model.predict(X_test)
     total_time = time.time() - start_time
-    print(f"Total time to predict {n} samples: {total_time:.2f} seconds")
+    return round(total_time, 2)
 
-evaluate_prediction_time(model_svm, X_test_flat)
-evaluate_prediction_time(model_svm_pca, X_test_pca)
+# load models
+model_svm_path = '../model/svm.pkl'
+model_svm_pca_path = '../model/svm_PCA.pkl'
+model_svm = load_pickle(model_svm_path)
+model_svm_pca = load_pickle(model_svm_pca_path)
+
+# load predictions
+prediction_path_svm = 'ml_result/test/prediction_svm.pkl'
+prediction_path_svm_pca = 'ml_result/test/prediction_svm_pca.pkl'
+preds_svm = load_pickle(prediction_path_svm)
+preds_svm_pca = load_pickle(prediction_path_svm_pca)
+
+# calculate accuracy
+accuracy_svm = round(accuracy_score(y_test, preds_svm), 3)
+accuracy_svm_pca = round(accuracy_score(y_test, preds_svm_pca), 3)
+
+# evaluate prediction time
+pred_time_svm = evaluate_prediction_time(model_svm, X_test_flat)
+pred_time_svm_pca = evaluate_prediction_time(model_svm_pca, X_test_pca)
+
+
+# Display results for better visualization
+results = pd.DataFrame({
+    'Model': ['SVM', 'SVM with PCA'],
+    'Accuracy': [accuracy_svm, accuracy_svm_pca],
+    'Prediction Time (s), n=100': [pred_time_svm, pred_time_svm_pca]
+})
+print(results)
 ```
+
+Accuracy slightly decreases.
 
 Prediction times were evaluated, highlighting the speed advantage of PCA-transformed data.
 
-### Convolutional Neural Network (CNN)
+### Modeling: Convolutional Neural Network (CNN)
 
 A 9-layer CNN was built, including Conv2D, MaxPooling2D, and Dropout layers.
 The CNN was trained and evaluated, achieving a higher accuracy of 0.741 on the test set.
 The CNN's prediction time was also evaluated, showing efficient performance.
 Conclusion:
 
-```{python}
-import tensorflow as tf
+```{python, echo=True}
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 
@@ -643,27 +626,56 @@ model_cnn = Sequential([
     Dropout(0.50),
     Dense(10, activation='softmax'),
 ])
-
-print(model_cnn.summary())
 ```
 
-Load model:  
+
+Training metrics, addressed overfitting  
 ```{python}
 from tensorflow.keras.models import load_model
 
+# load the model
 cnn_model_path = 'model/cnn.keras'
 model_cnn = load_model(cnn_model_path)
 ```
 
+
 ```{python}
+from tensorflow.keras.models import load_model
+
+# load the model
+cnn_model_path = 'model/cnn.keras'
+model_cnn = load_model(cnn_model_path)
+
 # evaluate accuracy
-test_loss, test_accuracy = model_cnn.evaluate(X_test, y_test, verbose=2)
-print(f"Test Accuracy: {round(test_accuracy, 3)}")
+test_loss_cnn, test_accuracy_cnn = model_cnn.evaluate(X_test, y_test, verbose=2)
+test_accuracy_cnn = round(test_accuracy_cnn, 3)
 
-# evaluate training time
-evaluate_prediction_time(model_cnn, X_test)
+# evaluate prediction time
+pred_time_cnn = evaluate_prediction_time(model_cnn, X_test)
 
+# display performance metrics for all 3 models
+new_row = pd.DataFrame({
+    'Model': ['CNN'],
+    'Accuracy': [test_accuracy_cnn],
+    'Prediction Time (s), n=100': [pred_time_cnn]
+})
+results = pd.concat([results, new_row], ignore_index=True)
+
+def get_file_size(file_path):
+    size_bytes = os.path.getsize(file_path)
+    size_mb = size_bytes / (1024 * 1024) # convert to megabytes
+    return round(size_mb, 1)
+
+# Append the new column for model sizes
+size_svm = get_file_size(model_svm_path)
+size_svm_pca = get_file_size(model_svm_pca_path)
+size_cnn = get_file_size(cnn_model_path)
+results['Model Size (MB)'] = [size_svm, size_svm_pca, size_cnn]
+
+print(results)
 ```
+DONT JUST SHOW CNN OUTPUT HERE, SHOW TABLE OF ALL OUTPUTS, INCLUDING MODEL SIZE
+
 While PCA combined with SVM offers dimensionality reduction and faster predictions, CNNs outperform both in accuracy and practical application for image classification tasks.
 
 Cnns are faster:
