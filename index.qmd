@@ -545,6 +545,7 @@ plot_images(X_train, X_train_reconstructed, n=5) # plot first 5 images
 
 ### Modeling: Support Vector Machine (SVM)
 
+Why SVM used for image classification, traditional ML, about SVM
 SVM models were created using the flattened data
 kernel='rbf', C=1.0, gamma='scale'
 
@@ -605,8 +606,10 @@ Prediction times were evaluated, highlighting the speed advantage of PCA-transfo
 
 A 9-layer CNN was built, including Conv2D, MaxPooling2D, and Dropout layers.
 The CNN was trained and evaluated, achieving a higher accuracy of 0.741 on the test set.
-The CNN's prediction time was also evaluated, showing efficient performance.
-Conclusion:
+The CNN's prediction time was also evaluated, showing efficient performance
+
+Relu activation
+softmax activation
 
 ```{python, echo=True}
 from tensorflow.keras.models import Sequential
@@ -629,15 +632,21 @@ model_cnn = Sequential([
 ```
 
 
-Training metrics, addressed overfitting  
-```{python}
-from tensorflow.keras.models import load_model
+The training results demonstrate that the CNN model, which incorporates convolutional layers, max pooling, and dropout, effectively reduces overfitting and enhances performance over time. The architecture supports a solid learning process, as shown by the consistent reduction in validation loss and steady improvement in accuracy. The higher training loss compared to validation loss can be attributed to the 'dropout' regularization technique.
 
-# load the model
-cnn_model_path = 'model/cnn.keras'
-model_cnn = load_model(cnn_model_path)
+```{python}
+from PIL import Image
+import matplotlib.pyplot as plt
+
+# Load the image file
+img_path = 'ml_result/validate/training_metrics.png'
+img = Image.open(img_path)
+plt.imshow(img)
+plt.axis('off')
+plt.show()
 ```
 
+Metrics were compared on the test data
 
 ```{python}
 from tensorflow.keras.models import load_model
@@ -647,7 +656,7 @@ cnn_model_path = 'model/cnn.keras'
 model_cnn = load_model(cnn_model_path)
 
 # evaluate accuracy
-test_loss_cnn, test_accuracy_cnn = model_cnn.evaluate(X_test, y_test, verbose=2)
+test_loss_cnn, test_accuracy_cnn = model_cnn.evaluate(X_test, y_test, verbose=0)
 test_accuracy_cnn = round(test_accuracy_cnn, 3)
 
 # evaluate prediction time
@@ -671,10 +680,8 @@ size_svm = get_file_size(model_svm_path)
 size_svm_pca = get_file_size(model_svm_pca_path)
 size_cnn = get_file_size(cnn_model_path)
 results['Model Size (MB)'] = [size_svm, size_svm_pca, size_cnn]
-
 print(results)
 ```
-DONT JUST SHOW CNN OUTPUT HERE, SHOW TABLE OF ALL OUTPUTS, INCLUDING MODEL SIZE
 
 While PCA combined with SVM offers dimensionality reduction and faster predictions, CNNs outperform both in accuracy and practical application for image classification tasks.
 
