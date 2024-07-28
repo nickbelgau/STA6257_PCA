@@ -9,8 +9,8 @@ course: STA 6257 - Advanced Statistical Modeling
 bibliography: references.bib # file contains bibtex for references
 #always_allow_html: true # this allows to get PDF with HTML features
 self-contained: true
-engine:
-  python: "C:/Users/Belgau/AppData/Local/Programs/Python/Python310/python.exe"
+jupyter: 
+  kernel: "python3"
 execute: 
   warning: false
   message: false
