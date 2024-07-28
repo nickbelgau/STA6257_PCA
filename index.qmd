@@ -435,6 +435,8 @@ ggplot(combined_results, aes(x=PC, y=`Cumulative Variance`, color=name, group=na
 ```
  
 ## Application 2: Image Compression  
+Don't use PCA for image classification. Use neural networks.[need sources]
+
 ```{r}}
 library(reticulate)
 
@@ -446,28 +448,176 @@ Data Loading and Normalization:
 Data Loading and Transformation
 The CIFAR-10 dataset was loaded and normalized to have pixel values between 0 and 1.
 Training, validation, and test sets were created with the training set further split to include a validation set.
-Principal Component Analysis (PCA):
+
 ```{python}
-
 import tensorflow as tf
-
-(X_train, y_train), (X_test, y_test) = tf.keras.datasets.cifar10.load_data()
 ```
 
-Images were flattened from 32x32x3 to 1-dimensional vectors for PCA, resulting in 3072 features per image.
+Load the data and normalize
+```{python}
+(X_train, y_train), (X_test, y_test) = tf.keras.datasets.cifar10.load_data()
 
-PCa
+# Normalize the pixel values to range 0-1
+X_train = X_train.astype('float32') / 255
+X_test = X_test.astype('float32') / 255
+```
+
+Split the training data in a validation set.
+```{python}
+from sklearn.model_selection import train_test_split
+
+X_train, X_validate, y_train, y_validate = train_test_split(
+    X_train, y_train, test_size=0.15, random_state=42)
+```
+
+
+### Principal Component Analysis (PCA)  
+Flatten the images from 32x32 pixels with 3 color channels (n x 32x32x3 array) into a 2-D vector (n x 3072).  
+PCA requires a 2-dimensional input (samples x features).
+```{python}
+# Flatten the X data
+X_train_flat = X_train.reshape((X_train.shape[0], -1))
+X_validate_flat = X_validate.reshape((X_validate.shape[0], -1))
+X_test_flat = X_test.reshape((X_test.shape[0], -1))
+
+print(X_train_flat.shape)
+print(X_validate_flat.shape)
+print(X_test_flat.shape)
+```
+
 PCA was applied to retain 95% of the variance, reducing dimensionality significantly while maintaining image information.
 The explained variance plot showed the number of components required to reach this threshold.
 Visualization of PCA Impact:
+```{python}
+from sklearn.decomposition import PCA
+
+# Initialize PCA and fit on the training data
+pca = PCA(n_components=0.95)
+pca.fit(X_train_flat)
+
+# Transform both the training and testing data
+X_train_pca = pca.transform(X_train_flat)
+X_validate_pca = pca.transform(X_validate_flat)
+X_test_pca = pca.transform(X_test_flat)
+```
+
+```{python}
+import matplotlib.pyplot as plt
+import numpy as np
+
+n_components = pca.n_components_
+cumulative_variance = np.cumsum(pca.explained_variance_ratio_)
+
+# Plot the explained variance
+plt.figure(figsize=(8, 4))
+plt.plot(cumulative_variance)
+plt.xlabel('Number of Components')
+plt.ylabel('Cumulative Explained Variance')
+plt.title('Explained Variance')
+plt.grid(True)
+
+# Annotate the number of components used
+plt.annotate(f'components: {n_components}', 
+             xy=(n_components, cumulative_variance[n_components-1]),  # This places the annotation at the point where the number of components is reached
+             xytext=(n_components, cumulative_variance[n_components-1] - 0.10),  # Adjust text position
+             ha='center')  # Horizontal alignment
+
+plt.show()
+```
 
 Original and PCA-reconstructed images were compared, illustrating that PCA retains substantial image quality despite compression.
 Support Vector Machine (SVM) Models:
+```{python}
+import matplotlib.pyplot as plt
+
+def plot_images(original, reconstructed, n):
+    plt.figure(figsize=(10, 4))
+    for i in range(n):
+        # Plot original images
+        ax = plt.subplot(2, n, i + 1)
+        plt.imshow(original[i])
+        plt.axis('off')
+        if i == 0:
+            ax.set_title("Original", loc='left')
+
+        # Plot reconstructed images
+        ax = plt.subplot(2, n, n + i + 1)
+        norm_image = (reconstructed[i] - np.min(reconstructed[i])) / (np.max(reconstructed[i]) - np.min(reconstructed[i]))
+        plt.imshow(norm_image)
+        plt.axis('off')
+        if i == 0:
+            ax.set_title("PCA Reconstructed", loc='left')
+
+    plt.show()
+
+# reconstruct the PCA data into 32x32x3 arrays
+X_train_reconstructed = pca.inverse_transform(X_train_pca)
+X_train_reconstructed = X_train_reconstructed.reshape((X_train.shape[0], 32, 32, 3))
+plot_images(X_train, X_train_reconstructed, n=5) # plot first 5 images
+```
+
+
+Load the models and predictions:  
+```{python}
+import pickle
+
+def load_pickle(path_pkl):
+    with open(path_pkl, 'rb') as file:
+        pickle_file = pickle.load(file)
+    return pickle_file
+
+# load models
+model_svm_path = '../model/svm.pkl'
+model_svm = load_pickle(model_svm_path)
+
+model_svm_pca_path = '../model/svm_PCA.pkl'
+model_svm_pca = load_pickle(model_svm_pca_path)
+
+# load predictions
+svm_prediction_path = 'ml_result/test/prediction_svm.pkl'
+results_svm = load_pickle(svm_prediction_path)
+
+# test set PCA
+svm_pca_prediction_path = 'ml_result/test/prediction_svm_pca.pkl'
+results_svm_pca = load_pickle(svm_pca_prediction_path)
+```
+
+Calculate performance:  
+```{python}
+from sklearn.metrics import accuracy_score
+
+# load predictions
+preds_svm = load_pickle(svm_prediction_path)
+preds_svm_pca = load_pickle(svm_pca_prediction_path)
+
+# calculate accuracy
+accuracy_svm = round(accuracy_score(y_test, preds_svm), 3)
+print("Accuracy on original data:", accuracy_svm)
+accuracy_svm_pca = round(accuracy_score(y_test, preds_svm_pca), 3)
+print("Accuracy on PCA data:", accuracy_svm_pca)
+```
+Accuracy slightly decreases.
+
+```{python}
+import time
+
+# Evaluation function
+def evaluate_prediction_time(model, X_test, n=100):
+    X_test = X_test[:n]
+    start_time = time.time()
+    model.predict(X_test)
+    total_time = time.time() - start_time
+    print(f"Total time to predict {n} samples: {total_time:.2f} seconds")
+
+evaluate_prediction_time(model_svm, X_test_flat)
+evaluate_prediction_time(model_svm_pca, X_test_pca)
+```
 
 Two SVM models were trained: one on the original flattened data and one on the PCA-transformed data.
 Accuracy on the test set for SVM on original data was 0.336, and on PCA-transformed data, it was 0.313.
 Prediction times were evaluated, highlighting the speed advantage of PCA-transformed data.
-Convolutional Neural Network (CNN):
+
+### Convolutional Neural Network (CNN)
 
 A 9-layer CNN was built, including Conv2D, MaxPooling2D, and Dropout layers.
 The CNN was trained and evaluated, achieving a higher accuracy of 0.741 on the test set.
@@ -476,7 +626,26 @@ Conclusion:
 
 While PCA combined with SVM offers dimensionality reduction and faster predictions, CNNs outperform both in accuracy and practical application for image classification tasks.
 CNNs' ability to learn complex patterns and adapt to real-time applications makes them superior for modern image processing needs.
-Practical Implications:
+
+Load model:  
+```{python}
+from tensorflow.keras.models import load_model
+
+cnn_model_path = 'model/cnn.keras'
+model_cnn = load_model(cnn_model_path)
+```
+
+```{python}
+# evaluate accuracy
+test_loss, test_accuracy = model_cnn.evaluate(X_test, y_test, verbose=2)
+print(f"Test Accuracy: {round(test_accuracy, 3)}")
+
+# evaluate training time
+evaluate_prediction_time(model_cnn, X_test)
+
+```
+
+CNNs are superior for image classification due to their ability to learn high-level features directly from data, adapt to complex patterns, and perform efficiently in real-time applications, including on IoT devices. While PCA + SVM might still be used for less complex or highly specific tasks where training data is limited or when computational simplicity is prioritized, CNNs are the standard for most current image processing tasks. This difference is crucial in educational settings, emphasizing the need to train students on technologies that they are most likely to use in industry, particularly in cutting-edge fields like machine learning and computer vision.
 
 This comparison illustrates the importance of using appropriate techniques for specific tasks. PCA with SVM may still be useful for simpler tasks or where computational resources are limited, but CNNs are the gold standard for most current image classification tasks.
 
