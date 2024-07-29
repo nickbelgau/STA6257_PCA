@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Nick Belgau, Oscar Hernandez Mata">
-<meta name="dcterms.date" content="2024-07-28">
+<meta name="dcterms.date" content="2024-08-01">
 
 <title>Practical Implementations of Principal Component Analysis</title>
 <style>
@@ -3262,7 +3262,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">July 28, 2024</p>
+      <p class="date">August 1, 2024</p>
     </div>
   </div>
   
@@ -4499,7 +4499,7 @@ SUNLIGHT         1.227205</code></pre>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>          Model  Accuracy  Prediction Time (s), n=100
-0           SVM     0.536                       11.10
+0           SVM     0.536                       11.23
 1  SVM with PCA     0.533                        1.06</code></pre>
 </div>
 </div>
@@ -4578,7 +4578,7 @@ SUNLIGHT         1.227205</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 1/4 [======&gt;.......................] - ETA: 0s
-4/4 [==============================] - 0s 6ms/step</code></pre>
+4/4 [==============================] - 0s 5ms/step</code></pre>
 </div>
 <details class="code-fold">
 <summary>Code</summary>
@@ -4604,9 +4604,9 @@ SUNLIGHT         1.227205</code></pre>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>          Model  Accuracy  Prediction Time (s), n=100  Model Size (MB)
-0           SVM     0.536                       11.10            894.7
+0           SVM     0.536                       11.23            894.7
 1  SVM with PCA     0.533                        1.06             65.2
-2           CNN     0.705                        0.20              2.6</code></pre>
+2           CNN     0.705                        0.19              2.6</code></pre>
 </div>
 </div>
 <p>The results show that the CNN outperforms both SVM models in accuracy and prediction time. In particular, the prediction time was nearly 5x faster than the SVM with PCA model; and with a model size of 2.6 MB, the CNN is small enough to be deployed directly on smart devices for edge computing. These qualities make CNNs a great choice for real-time image classification. The preservation of spatial complexities explains the higher accuracy of over 71%.</p>
