@@ -1,0 +1,322 @@
+---
+title: "Practical Implementations of Principal Component Analysis"
+author: "Nick Belgau, Oscar Hernandez Mata"
+date: "2024-08-01"
+format:
+  revealjs:
+    progress: true
+    slide-number: true
+    code-fold: true
+course: STA 6257 - Advanced Statistical Modeling
+bibliography: references.bib # file contains bibtex for references
+self-contained: true
+execute: 
+  warning: false
+  message: false
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+
+## Methods  
+
+### Linear Algebra Foundations  
+
+Principal Component Analysis (PCA) simplifies multivariate data by transforming the original potentially correlated variables into a smaller set of uncorrelated variables called principal components. The aim of PCA is to reduce the dataset's dimensionality while preserving as much variability as possible. Because the variables will often have different scales or units, standardization is crucial to ensure each variable contributes equally to the analysis. Principal components are obtained by identifying the directions of maximum variability in the data. These components are orthogonal and uncorrelated, with each one capturing a specific amount of the data's variance. This process creates a new coordinate system that simplifies the data structure while retaining its essential characteristics [@johnson2023applied].
+
+While different methods can be used to determine the principal components, Singular Value Decomposition (SVD) is the most common due to its computational efficiency and numerical stability which makes it a popular choice for popular programming packages. SVD decomposes the data into three simpler matrices, making it possible to handle large datasets effectively. This decomposition allows for a more straightforward calculation of the principal components without explicitly computing the covariance matrix, which can be computationally expensive and numerically unstable. The ability to handle sparse and dense matrices further enhances its versatility and efficiency in diverse applications. These advantages make SVD a preferred method in popular programming packages, ensuring that PCA is performed quickly and accurately.
+---
+
+### Overview of Algorithm with SVD:  
+
+1. **Standardize the data**  
+   Ensure each variable contributes equally by having a mean of zero and variance of one. This requires that the variables are continuous.
+   $$
+   X_{\text{standardized}} = \frac{X - \mu}{\sigma}
+   $$
+   $\mu$: mean, $\sigma$: standard deviation of each variable
+
+2. **Perform Singular Value Decomposition (SVD)**  
+  Decompose the standardized data matrix into three matrices $U$, $\Sigma$, and $V^T$.
+  $$
+  X_{\text{standardized}} = U \Sigma V^T
+  $$
+  $𝑈$ and $V^T$ are orthogonal matrices, so therefore $U$ and $V$ are also orthogonal. The diagonal matrix of singular values is represented by $\sigma$ with values $\sigma_i$ that are naturally sorted in descending order. Each column of $𝑉$ represents a principal component (PC) which are orthogonal to each other in the transformed feature space. The number of PC's initially generated are equivalent to the number of variables initially provided in the dataset.
+
+3. **Selection of principal components**  
+  The explained variance of each PC is represented by:
+  $$
+  \text{variance\_explained} = \frac{\sigma_i^2}{\sum \sigma_i^2}
+  $$
+  For each singular value $\sigma_i$ in the matrix of singular values $\Sigma$, compute $\sigma_i^2$ and calculate the individual variance. The cumulative explained variance target is specified (typically 95%) as a criteria for PC selection. Determine the number of components needs to reach the desired cumulative explained variance.
+
+4. **Transform the data**  
+  Project the data onto the selected principal components. This yields the new subspace with reduced dimensions.
+  $$
+  X_{\text{transformed}} = X_{\text{standardized}} V_{\text{selected}}
+  $$
+  where $V_{\text{selected}}$ contains the first number of components columns of $V$. Once the data is transformed onto the selected PC's, it is effectively reduced in dimensionality while retaining most of its original variability.
+
+---
+
+
+### Assumptions and Practical Testing  
+
+This section covers the primary assumptions of PCA and details how they can be tested in real-world applications. A more accurate name for this section might be *requirements* since the effectiveness of PCA relies on satisfying these points.
+
+#### 1. Linearity
+**Assumption**: PCA assumes that resulting principal components are linear combinations of the original variables. Nonlinear relationships may lead to low covariance values which can lead to an undervalued representation of their signficance.
+
+**Testing**: Initial checks with scatter plots and correlation matrices can help identify linear relationships between variable pairs. While common, these methods require manual inspection which introduces the potential for the researcher to miss subtler non-linear patterns. Supplementing with statistical tests for linearity can provide a more robust assessment. Transformations can be applied to specific non-linear variables or alternative PCA methods can be utilized such as Kernal PCA [@marukatat2023tutorial].
+
+
+##### 2. Continuous data
+**Assumption**: To calculate principal components, data should be on a continuous scale: either interval or ratio. It should be mentioned that despite being ordinal, Likert Scales are often used because the distance between scale points are assumed to be approximately equivalent.  
+
+**Testing**: Reviewing column data types and value counts are practical methods for testing. Simple transformations can be applied to categorical data.
+
+#### 3. Data standardization 
+
+**Assumption**: There are three critical preprocessing steps: scaling, mean-centering, and outlier handling. Scaling standardizes the variance of each variable to ensure equal contributions. Mean-centering has a similar impact: ensuring that the principal components capture the true direction of maximum variance. Outliers can also distort the principal components, so they should be identified and handled appropriately. Together these methods prevent variables with larger measured values from dominating the principal components and skewing results.
+
+**Testing**: Data will usually not arrive in a condition that meets this requirement. Luckily, statistical packages in common programming languages offer simple methods to scale and mean-center data. Outliers can be detected using a variety of distribution plots, but automated methods could be employed for larger datasets which is beyond the scope of this paper.  
+
+---
+
+## Application 1 - Analysis and Results
+
+Load the required libaries:
+```{r}
+library(readxl)
+library(skimr)
+library(dplyr)
+library(readr)
+library(ggplot2)
+library(GGally)
+library(corrplot)
+library(DescTools)
+library(reshape2)
+library(factoextra)
+library(kableExtra)
+library(rrcov)
+library(psych)
+library(stats)
+library(ggfortify)
+library(lmtest)
+library(car)
+```
+
+### Dataset Description
+
+The dataset contains demographic, health, and environmental metrics for counties in the United States from US census data. Each row represents data for a specific county of a state [@tejada_vera_2013] [@amin_2018]. The columns analyzed were:  
+- obesity_age_adj: Age-adjusted obesity rate.  
+- Smoking_Rate: Rate of smoking within the population.  
+- Diabetes: Diabetes prevalence rate.  
+- Heart_Disease: Heart disease prevalence rate.  
+- Cancer: Cancer prevalence rate.  
+- Food Index: Index score representing food availability and quality.  
+- Poverty_Percent: Percentage of the population living below the poverty line.  
+- physical_inactivity: Rate of physical inactivity.  
+- Mercury_TPY: Mercury emissions in tons per year.  
+- Lead_TPY: Lead emissions in tons per year.  
+- Atrazine_High_KG: Atrazine in KG per year.  
+
+```{r}
+url <- "https://raw.githubusercontent.com/nickbelgau/STA6257_PCA/main/data/demographic/Alz_mortality_data_complete_with_state_csv.csv"
+data_raw <- read_csv(url)
+```
+
+### Filtered Dataset and Inspection  
+
+The dataset was filtered to analyze only selected variables for states in the deep south in the United States. The county and state columns were removed, creating 1 entire region on the dataset. Columns were selected to remove demographic fields related to gender, sex, and race and ambigious fields related to grouping.
+
+```{r}
+selected_columns <- c(
+  "County", "State", "obesity_age_adj", "Smoking_Rate", "Diabetes", "Heart_Disease", "Cancer",  "Mercury_TPY", "Lead_TPY", "Food_index", "Poverty_Percent", "Atrazine_High_KG", "SUNLIGHT"
+)
+
+deep_south_states <- c("AL", "AR", "FL", "GA", "LA", "MS", "NC", "SC", "TN", "TX", "VA")
+
+data <- data_raw %>%
+  filter(State %in% deep_south_states) %>%
+  select(all_of(selected_columns))
+
+data <- data %>%
+  select(-County, -State)
+```
+
+The variables appear to be continuous because the data types are "numeric" with high cardinality. There are no nulls. It is clear that scaling and mean-centering will be needed.  
+
+```{r}
+skim(data)
+```
+
+### Linarity Analysis  
+PCA works on the premise that principal components are linear combinations of the original features. Linearity between variables boosts PCA efficiency, while its absence may cause information loss. Statistical pairwise testing can automate the identification of non-linear relationships, providing a practical alternative to time-intensive visual inspection methods which is particularly helpful for large datasets.  
+
+The Harvey-Collier Test for Linearity fits a linear model to each variable pair, calculates recursive residuals, and conducts regression again on these residuals [@nwakuya2022instability] [@harvey1977testing]. A significant nonzero slope in the residual regression indicates non-linearity, suggesting potential information loss in PCA.
+
+```{r}
+harvey_collier_test <- function(data, x, y) {
+  formula <- as.formula(paste(y, "~", x))
+  model <- lm(formula, data = data)
+  test <- harvtest(model)
+  p_value <- test$p.value
+  return(signif(p_value, digits = 2))
+}
+
+variables <- names(data)
+n <- length(variables)
+p_matrix <- matrix(NA, n, n, dimnames = list(variables, variables))
+
+for (i in 1:n) {
+  for (j in 1:n) {
+    if (i != j) {  # Avoid testing a variable against itself
+      p_matrix[i, j] <- harvey_collier_test(data, variables[i], variables[j])
+    }
+  }
+}
+```
+When the p-value is less than the signficance level, the test declares that the relationship is nonlinear. A heatmap of the p-values reveals which pairs are nonlinear with color-coding. 
+```{r}
+library(ggplot2)
+
+p_matrix_long <- melt(p_matrix)
+names(p_matrix_long) <- c("Var1", "Var2", "p_value")
+
+p_matrix_long$Var1 <- factor(p_matrix_long$Var1, levels = rev(unique(p_matrix_long$Var1)))
+
+alpha = 0.0001
+
+gradient_fill <- scale_fill_gradientn(
+  colors = c("#215B9D", "#F0F0F0", "#F0F0F0"),
+  values = scales::rescale(c(0, alpha, 1)),
+  na.value = "#F0F0F0",  # Also set missing values to light grey
+  guide = "colourbar"
+)
+
+ggplot(p_matrix_long, aes(Var1, Var2, fill= p_value)) + 
+  geom_tile(color = "white") +
+  geom_text(aes(label = sprintf("%.2e", p_value)), color = "black", size = 2) + 
+  gradient_fill +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+        axis.text.y = element_text(size = 10),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "none") + 
+  labs(title = "Heatmap of P-Values") 
+```
+
+The residual plot for a single pair that was flagged as nonlinear reveals why the Harvey-Collier Test declared nonlinearity. Although transformations can adjust linearity, they risk altering other variable relationships. Thus, no transformations were applied, acknowledging some information loss in PCA.
+
+```{r}
+data_residual <- as.data.frame(data)
+
+data_residual$residuals <- residuals(lm(Diabetes ~ obesity_age_adj, data = data_residual))
+
+ggplot(data_residual, aes(x = obesity_age_adj, y = residuals)) +
+  geom_point() + 
+  geom_smooth(method = "loess", se = FALSE, color = "blue") +  # LOWESS curve
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  labs(title = "Residuals of Diabetes vs. obesity_age_adj",
+       x = "obesity_age_adj", y = "Residuals") +
+  theme_minimal()
+```
+
+
+### Outliers Analysis  
+Outliers can distort PCA results by disproportionately increasing variance, shifting the direction of principal components, and inflating eigenvalues. Before implementing outlier removal techniques, it is crucial to first examine the distribution to validate the rationale behind outlier exclusion. Although PCA does not require normality, a roughly normal distribution minimizes the impact from outliers. Non-normal data may undergo transformations like the Box-Cox to approximate normality. Assessing skewness and kurtosis offers practical insights into distribution characteristics.
+
+```{r}
+library(moments)
+
+distribution_metrics <- function(df) {
+  results <- data.frame(
+    Kurtosis = sapply(data, kurtosis),
+    Skewness = sapply(data, skewness)
+  )
+  results <- results[order(-results$Kurtosis),]
+  return(results)
+}
+
+print(distribution_metrics(data))
+```
+This analysis reveals columns with high kurtosis and skewness. Boxplots confirm that these are variables are right-skewed with numerous outliers, suggesting the need for transformation to improve PCA.
+```{r}
+columns_to_transform <- c("Lead_TPY", "Mercury_TPY", "Atrazine_High_KG")
+
+par(mfrow=c(3, 1)) # format
+for (col in columns_to_transform) {
+  boxplot(
+    data[[col]],
+    horizontal=TRUE,
+    main=paste("Boxplot of", col),
+    col="lightblue",
+    border="darkblue"
+  )
+}
+```
+
+The Box-Cox transformation is a robust statistical method that normalizes the data distribution, enhancing its suitability for PCA [@compression2014boxcox]. It is considered best practice to apply such transformations to columns selectively rather than on the entirety of the dataset. Automating this process can be achieved by setting a kurtosis threshold.Additionally, negative values must be carefully managed to ensure the Box-Cox transformation is correctly implemented. 
+```{r}
+library(MASS)
+
+box_cox_transform <- function(df, columns) {
+  transformed_df <- df
+  lambdas <- list()
+  for (col in columns) {
+    col_data <- df[[col]]
+    col_data[col_data <= 0] <- min(col_data[col_data > 0]) / 2
+    bc <- boxcox(col_data ~ 1, plotit=FALSE)
+    lambda <- bc$x[which.max(bc$y)]
+    transformed_df[[col]] <- (col_data^lambda - 1) / lambda
+    lambdas[[col]] <- lambda
+  }
+  return(list(transformed_df, lambdas))
+}
+
+result <- box_cox_transform(data, columns_to_transform)
+data_transform <- result[[1]]
+lambdas <- result[[2]]
+
+par(mfrow = c(length(columns_to_transform) + 1, 1), mar = c(4, 4, 2, 2))
+for (i in columns_to_transform) {
+  hist(data_transform[[i]], probability = TRUE, main = paste("Density Plot of", i), xlab = "Values", col = "lightblue", border = "darkblue")
+  lines(density(data_transform[[i]]), col = "darkred", lwd = 2)
+}
+```
+The transformations create an approximate bell-shaped distribution, reducing outlier effects. Minor power adjustments, indicated by lambda values, enhance PCA effectiveness without the need for manual outlier removal.  
+```{r}
+lambda_df <- data.frame(
+  Lambda = unlist(lambdas)
+)
+print(lambda_df)
+```
+
+### Correlation Analysis
+A heatmap of the correlation matrix was analyzed to identify highly correlated variables, indicating potential multicollinearity within the dataset. By applying PCA, correlated variables can be transformed into orthogonal components which eliminate multicollinearity. This transformation ensures each principal component captures unique variance, improving the clarity and reliability of modeling.
+
+```{r}
+library(corrplot)
+
+cor_matrix <- cor(data, use = "complete.obs")  # Handle missing values
+
+color_palette <- colorRampPalette(c("#215B9D", "#DCE6F1", "#215B9D"))(200) # blue #215B9D
+
+corrplot(abs(cor_matrix), method = "color",
+        #  type = "lower", 
+         order = "hclust",
+         addCoef.col = "#36454F",
+         number.cex = 0.50,
+         tl.col = "black",
+         tl.srt = 45,  # No rotation for text labels
+        #  tl.pos = "d",  # Position text labels at the bottom (x-axis)
+         cl.pos="n",
+         col = color_palette,
+         bg = "white"
+)
+```
