@@ -7,10 +7,7 @@ format:
     code-fold: true
 course: STA 6257 - Advanced Statistical Modeling
 bibliography: references.bib # file contains bibtex for references
-#always_allow_html: true # this allows to get PDF with HTML features
 self-contained: true
-jupyter: 
-  kernel: "python3"
 execute: 
   warning: false
   message: false
@@ -29,15 +26,13 @@ PCA is often used during exploratory data analysis because this technique enable
 
 Additionally, PCA is a powerful tool to address the curse of dimensionality and the main problem areas associated with high dimensionality: data sparsity, multicollinearity, and overfitting [@altman2018curse]. By projecting the data onto the principal components, the density of data points is increased in the new vector space which makes it easier to detect patterns and reduce noise. Multicollinearity is mitigated in the process because the principal components are uncorrelated to each other which improves stability and performance of the predictive models [@bharadiya2023tutorial]. With dimensionality reduction, models become simpler which improves generalization and reduces overfitting.  
 
-These benefits become valuable in many real-world applications, including image compression and signal processing. Lengthy image transfer over the internet can be improved by factoring image pixel matrices to extract the main patterns with minimal information loss [@ng2017pca]. For image processing tasks and particularly in edge-computing applications, PCA can reduce file size by 60% with minimal information loss [@ali2024dimensionality]. This is especially useful for real-time quality control systems with deployed ML models in advanced manufacturing environments. For signal processing, PCA can be used to identify the underlying structure and relevant features in signals amongst the noise.  
-
 In machine learning pipelines, PCA is often employed because reducing the number of dimensions decreases computational complexity, lowers memory requirements, and enhances algorithm efficiency. Additionally, PCA's feature extraction capabilities allow for a better understanding and interpretation of the underlying data structure by identifying the most influential variables [@bharadiya2023tutorial]. It effectively filters out noise and irrelevant variations, enhancing the signal-to-noise ratio and improving the performance of subsequent analyses.
 
 As with every technique, PCA has a few inherent limitations. It assumes linearity which means that if nonlinear relationships exist, PCA will not as effective because it may fail to capture the underlying structure in the data. However, modern variations such as Kernal PCA seeks to address this [@marukatat2023tutorial]. Interpretability is another considerable downside because the resulting principal components are combinations of the original variables, but interpretting the loadings can be helpful in this effort. PCA is also sensitive to outliers, which can affect the quality of dimensionality reduction. However, there have been improvements to address outlier sensitivity such as Robust PCA which decomposes the data into a low-rank matrix and sparse matrix to separate signal and noise [@bharadiya2023tutorial].  
 
-Additionally, PCA results in some degree of information loss, as the lower-dimensional representation will not retain all details from the original data. More specifically, in image compression, PCA can lead to loss of fine details and subtle features in images, especially when a high compression rate is applied. In addition, the computation of eigenvectors and eigenvalues, especially for large images, can be resource intensive and time-consuming [@do2012pca]. Lastly, selecting the optimal number of components to retain is subjective; choosing too few can lead to significant information loss, while choosing too many can lead to overfitting or unnecessary complexity.  
+Another application of PCA is image compression and classification. However, in real-world applications, PCA has largely been supplanted by more advanced methods. For example, popular compression algorithms like JPEG are more effective for image compression. In the realm of image classification, while PCA can enhance the performance of traditional machine learning algorithms [@ali2024dimensionality], modern techniques predominantly favor Convolutional Neural Networks (CNNs). CNNs are especially advantageous because they preserve spatial relationships between pixels unlike PCA and can be significantly more lightweight, allowing for deployment directly on smart devices for edge computing. Understanding when not to use PCA can provide valuable guidance in selecting the most appropriate methods for specific data science challenges.  
 
-Despite these drawbacks, PCA is crucial in data science for its ability to simplify complex datasets, reduce computational costs, and enhance the interpretability of data by focusing on the most significant features. It offers a powerful tool for improving model performance, reducing noise, and uncovering hidden patterns, making it indispensable for efficient and insightful data analysis.
+Despite these advancements, PCA remains crucial in data science for its ability to simplify complex datasets. It offers a powerful tool for improving model performance, reducing noise, and uncovering hidden patterns, making it indispensable for efficient and insightful data analysis. However, it is essential to understand the contexts in which PCA is not the best choice and to consider alternative methods where they are more suitable.
 
 
 ## Methods  
@@ -434,33 +429,26 @@ ggplot(combined_results, aes(x=PC, y=`Cumulative Variance`, color=name, group=na
   scale_x_discrete()
 ```
  
-## Application 2: Image Compression & Classification  
-Don't use PCA for image classification. Use neural networks.[need sources]  
-Don't use PCa for image compression, use JPEG or other
 
-```{r}}
-# library(reticulate)
-# # Use reticulate to ensure TensorFlow is installed
-# py_install("tensorflow", pip = TRUE)
-# py_install("pydot", pip = TRUE)
-# py_install("graphviz", pip = TRUE)
+## Application 2: Image Classification  
+PCA is frequently touted as an effective technique to improve image classification tasks through dimensionality reduction [@li2012pcabased]. In this application, the effectiveness of PCA was evaluated for a Support Vector Machine (SVM) algorithm and compared to the results from a modern Convolutional Neural Network (CNN). The results from this analysis were used as a feasability assessment for real-world applications in an IoT environment.
 
-py_install("ann_visualizer", pip = TRUE)
-```
 ### Data Loading and Normalization:
 
-The CIFAR-10 dataset was loaded and normalized to have pixel values between 0 and 1.
-Training, validation, and test sets were created with the training set further split to include a validation set.
+The CIFAR-10 dataset contains 10,000 images of 10 different classes of labeled objects. This data was loaded and normalized to have pixel values between 0 and 1 in preparation for training SVM and CNN machine learning models. Training, validation, and test sets were created.
+
 ```{python}
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
 
+# Loading the training and test sets
 (X_train, y_train), (X_test, y_test) = tf.keras.datasets.cifar10.load_data()
 
 # Normalize the pixel values to range 0-1
 X_train = X_train.astype('float32') / 255
 X_test = X_test.astype('float32') / 255
 
+# Split the training set to create a validation set
 X_train, X_validate, y_train, y_validate = train_test_split(
     X_train, y_train, test_size=0.15, random_state=42)
 ```
@@ -468,7 +456,7 @@ X_train, X_validate, y_train, y_validate = train_test_split(
 
 ### Principal Component Analysis (PCA)  
 
-PCA requires a 2-dimensional input (samples x features). Flatten the images from 32x32 pixels with 3 color channels (n x 32x32x3 array) into a 2-D vector (n x 3072).  
+PCA was implemented to investigate the impacts on accuracy and prediction speed. PCA requires a 2-dimensional input (samples x features), so the images were flattened from 32x32 pixels with 3 color channels (n x 32x32x3 array) into a 2-D vector (n x 3072).  
 ```{python}
 from sklearn.decomposition import PCA
 
@@ -487,7 +475,7 @@ X_validate_pca = pca.transform(X_validate_flat)
 X_test_pca = pca.transform(X_test_flat)
 ```
 
-PCA was applied to retain 95% of the variance, reducing dimensionality significantly while maintaining image information. The explained variance plot showed the number of components required to reach this threshold.
+PCA was applied to retain 95% of the explained variance which significantly reduced the dimensionality of the dataset from 3072 dimensions to under 250 dimensions. The explained variance plot shows the number of components required to reach this threshold.
 
 ```{python}
 import matplotlib.pyplot as plt
@@ -513,7 +501,7 @@ plt.annotate(f'components: {n_components}',
 plt.show()
 ```
 
-Original and PCA-reconstructed images were compared, illustrating that PCA retains substantial image quality despite compression.
+The original images were compared to the PCA-reconstructed images, illustrating that PCA retains moderate image quality despite significant compression.
 ```{python}
 import matplotlib.pyplot as plt
 
@@ -545,11 +533,9 @@ plot_images(X_train, X_train_reconstructed, n=5) # plot first 5 images
 
 ### Modeling: Support Vector Machine (SVM)
 
-Why SVM used for image classification, traditional ML, about SVM
-SVM models were created using the flattened data
-kernel='rbf', C=1.0, gamma='scale'
+Traditionally, SVM has been used for image classification due to the effectiveness of this algorithm to handle high-dimensional data and find an optimal hyperplane that separates the classes. In this application, an SVM model was created on the original flattened data and then compared to an SVM model using the PCA-reduced data. A radial basis function (RBF) kernel was used because it is effective for handling the complexity of image data because the relationships between features are often non-linear.  
 
-Load the models and predictions on test data  
+Models were first trained and analyzed on the validation set. They were then loaded and evaluated on the test data.  
 ```{python}
 import pickle
 from sklearn.metrics import accuracy_score
@@ -598,20 +584,17 @@ results = pd.DataFrame({
 print(results)
 ```
 
-Accuracy slightly decreases.
-
-Prediction times were evaluated, highlighting the speed advantage of PCA-transformed data.
+The results show that the PCA model achieved similar accuracy but significantly reduced the prediction time. This demonstrates the effectiveness of dimensionality reduction in speeding up predictions without compromising accuracy. However, the accuracy remains quite low, so modern neural networks were analyzed next.
 
 ### Modeling: Convolutional Neural Network (CNN)
 
-A 9-layer CNN was built, including Conv2D, MaxPooling2D, and Dropout layers.
-The CNN was trained and evaluated, achieving a higher accuracy of 0.741 on the test set.
-The CNN's prediction time was also evaluated, showing efficient performance
+This paper primarily explores the practical applications of PCA, yet it is equally important to recognize situations where PCA may not be the optimal choice. The analysis contrasts PCA with Convolutional Neural Networks (CNNs) to challenge the extensive literature that advocates PCA for image classification. While PCA can precede CNNs in specialized contexts, such as hyperspectral imaging where dataset dimensionality is exceptionally high [@li2012pcabased], these configurations typically result in less optimal machine learning outcomes. Conversely, CNNs, known for their efficiency and lightweight architecture, are ideally suited for direct deployment on IoT devices without the need for prior dimensionality reduction.  
 
-Relu activation
-softmax activation
+CNNs are particularly effective for image classification tasks due to their ability to learn spatial hierarchies of features, making them more effective than other neural networks. PCA is typically not used before input to a CNN because it destroys the spatial complexity by flattening the data structure, whereas preserving this spatial complexity is crucial for CNNs to perform well [@goel2023role].  
 
-```{python, echo=True}
+A 9-layer CNN was constructed utilizing Conv2D layers to apply convolution operations, allowing the model to adaptively learn spatial hierarchies. The model was iteratively refined to address overfitting through the use of Dropout layers, which randomly deactivate neurons, and MaxPooling2D layers, which reduce dimensions. The final layer includes a softmax activation function to output probabilities for multi-class classification.  
+```{python}
+#| code-fold: false
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 
@@ -631,28 +614,26 @@ model_cnn = Sequential([
 ])
 ```
 
-
-The training results demonstrate that the CNN model, which incorporates convolutional layers, max pooling, and dropout, effectively reduces overfitting and enhances performance over time. The architecture supports a solid learning process, as shown by the consistent reduction in validation loss and steady improvement in accuracy. The higher training loss compared to validation loss can be attributed to the 'dropout' regularization technique.
-
+The training results demonstrate that the CNN model architecture effectively reduces overfitting while enhancing performance over each training epoch. The higher loss on the training set compared to the validation set can be attributed to the 'dropout' regularization technique.  
 ```{python}
-from PIL import Image
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 
-# Load the image file
+# Load and display the image
 img_path = 'ml_result/validate/training_metrics.png'
-img = Image.open(img_path)
+img = mpimg.imread(img_path)
 plt.imshow(img)
 plt.axis('off')
 plt.show()
 ```
 
-Metrics were compared on the test data
-
+After training, the model was saved and evaluated on the unseen test data. Accuracy, prediction time, and model size were recorded and compared to the SVM models. 
 ```{python}
 from tensorflow.keras.models import load_model
+import os
 
 # load the model
-cnn_model_path = 'model/cnn.keras'
+cnn_model_path = 'model/cnn_tf213.keras'
 model_cnn = load_model(cnn_model_path)
 
 # evaluate accuracy
@@ -675,7 +656,7 @@ def get_file_size(file_path):
     size_mb = size_bytes / (1024 * 1024) # convert to megabytes
     return round(size_mb, 1)
 
-# Append the new column for model sizes
+# append new column for model size
 size_svm = get_file_size(model_svm_path)
 size_svm_pca = get_file_size(model_svm_pca_path)
 size_cnn = get_file_size(cnn_model_path)
@@ -683,29 +664,17 @@ results['Model Size (MB)'] = [size_svm, size_svm_pca, size_cnn]
 print(results)
 ```
 
-While PCA combined with SVM offers dimensionality reduction and faster predictions, CNNs outperform both in accuracy and practical application for image classification tasks.
+The results show that the CNN outperforms both SVM models in accuracy and prediction time. In particular, the prediction time was nearly 5x faster than the SVM with PCA model; and with a model size of 2.6 MB, the CNN is small enough to be deployed directly on smart devices for edge computing. These qualities make CNNs a great choice for real-time image classification. The preservation of spatial complexities explains the higher accuracy of over 71%.  
 
-Cnns are faster:
-CNNs are specifically designed for image data and leverage convolutional layers that apply filters to capture spatial hierarchies in images. CNNs are generally more complex in terms of architecture but are highly optimized for parallel processing. This makes them relatively faster at processing large volumes of image data once trained.
+In conclusion, CNNs are superior for certain image classification tasks due to their ability to learn high-level features directly from data, adapt to complex patterns, and perform efficiently in real-time applications. The lightweight nature of CNN models allow for deployment directly on IoT devices, eliminating the need to send data to the cloud for processing. These advantages make CNNs the gold standard for most current image classification tasks, including machine vision applications.
 
-SVMs can be computationally intensive, especially if the kernel trick is used to handle non-linear classification. 
-The complexity in SVMs arises from the calculations needed to determine the support vectors during training and the decision function during prediction.
-
-Flattening leads to high computational costs.
-
-
-CNNs are superior for image classification due to their ability to learn high-level features directly from data, adapt to complex patterns, and perform efficiently in real-time applications, including on IoT devices. 
-
-machine vision
-
-TABLE OF RESULTS
-
-EXPLAIN HOW CNN MUCH BETTER THAN PCA FOR IMAGE CLASSIFICATION
- but CNNs are the gold standard for most current image classification tasks.
 
 ## Conclusion  
 
-In summary, Principal Component Analysis has proven invaluable in reducing the dimensionality of complex datasets, allowing for clearer visualization and interpretation of the underlying structures. This technique transforms original variables into uncorrelated principal components, effectively capturing the most significant patterns in the data while mitigating issues such as multicollinearity and overfitting. Despite its limitations, including sensitivity to outliers and potential information loss from nonlinear relationships, PCA remains a crucial tool in various applications. These include image compression, signal processing, and machine learning pipelines, resulting in improved model performance and computational efficiency.
+In summary, Principal Component Analysis (PCA) is invaluable for simplifying complex datasets by reducing their dimensionality. This technique transforms original variables into uncorrelated principal components, capturing key patterns while addressing multicollinearity and overfitting. Despite challenges like sensitivity to outliers and potential information loss in nonlinear relationships, PCA is essential across various applications—from image compression to signal processing and machine learning—enhancing model performance and computational efficiency.
 
-Applying PCA to a sample dataset, which includes demographic, health, and environmental metrics for counties in the deep south of the United States, revealed that the first four principal components explain 72% of the variance. PC1 is heavily loaded with health and socioeconomic variables, indicating a general health status dimension. PC2 captures environmental pollution factors, specifically emissions of mercury and lead, while PC3 reflects additional health and socioeconomic complexities. This analysis underscores the ability of PCA to distill vast amounts of information into comprehensible insights, facilitating more effective data-driven decision-making.
+PCA was applied to a sample dataset containing demographic, health, and environmental metrics for counties in the deep south of the United States. The analysis revealed that the first four principal components explain 72% of the variance: PC1 is heavily loaded with health and socioeconomic variables, PC2 captures environmental pollution factors, PC3 reflects additional health and socioeconomic complexities, and PC4 includes chemical factors. This analysis underscores the ability of PCA to distill vast amounts of information into comprehensible insights, facilitating more effective data-driven decision-making.  
 
+In the context of image compression and classification, PCA has traditionally been used but is now often replaced by more advanced techniques such as CNNs. The results from the CIFAR-10 analysis indicated that despite the improvements of using PCA with SVM, the accuracy and prediction time dwarfs in comparison to the CNN. The evaluation metrics for the CNN displayed an accuracy of 70.5% compared to ~53% for the SVM model which had PCA conducted on the data. Furthermore, the prediction time was 5x faster and the model was only 2.6 MB, lending confidence that the CNN would be preferred for edge computing applications that may require real-time processing.
+
+Despite these observations on image data, PCA is still widely used in machine learning pipelines and exploratory data analysis to reduce the dimensionality of tabular data. However, for specific applications like image classification, advanced methods such as CNNs offer significant advantages, demonstrating the importance of choosing the right tools based on the context and requirements of the task at hand.
