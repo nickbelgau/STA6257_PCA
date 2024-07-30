@@ -25,6 +25,62 @@ editor:
 ---
 
 
+## Introduction  
+
+### About  
+ - PCA is a technique for extracting insights from complex datasets across various industries and data science applications.  
+
+ - The primary objective of PCA is to reduce the number of dimensions in the dataset while retaining most of the original information [@rahayu2017application].  
+
+ - PCA utilizes linear algebra to transform the original dataset to a lower dimensional vector space of uncorrelated variables known as principal components.  
+
+ - These are linear combinations of the original variables, and represent the information in a new coordinate system with axes aligned to the directions of maximum variability [@joshi2020prediction].  
+
+
+### Functionality  
+- PCA can reveal unexpected relationships between the original variables that would otherwise be challenging to identify.  
+
+- By reducing the dimensionality, PCA simplifies data structure, making it easier to interpret and analyze.  
+
+- PCA identifies trends, patterns, and outliers in the reduced-dimension dataset [@joshi2020prediction].  
+
+
+---
+
+## Advantages & Limitations
+
+### Advantages  
+- Helps mitigate the curse of dimensionality: data sparsity, multicollinearity, and overfitting [@altman2018curse].   
+
+- Multicollinearity is mitigated because the principal components are uncorrelated to each other which improves stability and performance of the predictive models.  
+
+- With dimensionality reduction, models become simpler which improves generalization and reduces overfitting [@bharadiya2023tutorial].  
+
+- In machine learning pipelines, PCA is often employed because reducing the number of dimensions decreases computational complexity, lowers memory requirements, and enhances algorithm efficiency. 
+
+- PCA identifies the most influential variables. It effectively filters out noise and irrelevant variations [@bharadiya2023tutorial].
+
+
+
+### Limitations  
+
+- It assumes linearity which means that if nonlinear relationships exist, PCA will not be as effective because it    may fail to capture the underlying structure in the data. However, modern variations such as Kernal PCA seeks     to address this. 
+
+- PCA is also sensitive to outliers, which can affect the quality of dimensionality reduction. However, there       have been improvements to address outlier sensitivity such as Robust PCA which decomposes the data into a         low-rank matrix and sparse matrix to separate signal and noise [@bharadiya2023tutorial].  
+
+---
+
+## PCA applications
+
+- Image compression and classification. However, in real-world applications, PCA has largely been supplanted by more advanced methods such as compression algorithms like JPEG. 
+
+- In the realm of image classification, while PCA can enhance the performance of traditional machine learning algorithms, modern techniques predominantly favor Convolutional Neural Networks (CNNs).  
+
+- Despite these advancements, PCA remains crucial in data science for its ability to simplify complex datasets. However, it is essential to understand the contexts in which PCA is not the best choice and to consider alternative methods where they are more suitable [@ali2024dimensionality].
+
+---
+
+
 ## The Math behind PCA  
 
 ::: {.panel-tabset}
@@ -425,5 +481,353 @@ data.frame(VIF=vif(model))
 :::
 
 :::
+
+---
+
+
+### Principal Component Analysis
+
+- Mean-centering and scaling was executed at time of PCA execution.  
+- What's more important - information retention or dimensionality reduction?  
+- Common practice is to aim for 70-95%, but depends on the application.    
+- The first few components are crucial for capturing the major variance in the data:  
+
+```{r}
+#| code-fold: true
+pca_result <- prcomp(data_transform, center=TRUE, scale.=TRUE)
+pca_summary <- summary(pca_result)
+importance <- as.data.frame(pca_summary$importance)
+importance <- as.data.frame(t(importance)) # transpose to make cleaner
+
+importance$Eigenvalues <- pca_result$sdev^2
+colnames(importance) <- c("Std Dev", "Proportion", "Cumulative Variance", "Eigenvalues")
+importance <- importance[, c("Std Dev", "Eigenvalues", "Proportion", "Cumulative Variance")] # rearrangeo
+importance
+```
+
+
+---
+
+### Scree Plot
+
+```{r}
+plot(pca_result, type = "l", col = "#215B9D", lwd = 2)
+```
+ - The scree plot shows an elbow at the fourth principal component, indicating a point of diminishing returns.  
+ - The first four components might be a sufficient summary of the data.
+
+---
+
+### Eigenvectors (loadings)  
+
+```{r}
+#| code-fold: true
+eigenvectors <- pca_result$rotation
+first_four_eigenvectors <- eigenvectors[, 1:4]
+first_four_eigenvectors
+```
+- PC1: Represents general health and lifestyle factors, indicating that increases in obesity, smoking, diabetes, heart disease, cancer, and poverty are correlated with poorer health outcomes.  
+
+- PC2: Reflects environmental exposure, with higher levels of Mercury and Lead decreasing the component score, indicating negative impacts.  
+
+- PC3: Highlights the relationship between sunlight, food quality, and poverty, showing that decreased access to quality food correlates with increased poverty levels.  
+
+- PC4: Suggests a potential link between the agricultural chemical Atrazine and cancer, indicating environmental health risks.  
+ 
+
+--- 
+
+### Biplot
+
+- A biplot visualizes the first 2 PCs, showing the data projection and how each variable contributes to the PC (arrow magnitude and direction). 
+- Variables that are orientated in the same direction or in the complete opposite direction are correlated - a redundancy in information. 
+
+```{r}
+#| code-fold: true
+autoplot(pca_result, 
+         data = data_transform,
+         colour = 'grey',
+         loadings = TRUE,
+         loadings.colour = '#215B9D',
+         loadings.label = TRUE,
+         loadings.label.colour = 'black', 
+         loadings.label.size = 3) + 
+  theme_minimal() +
+  theme(legend.position = "none"
+)
+```
+ - Food_index is negatively correlated to obesity_age_adj and Diabetes which contributes redundant information to the dataset.  
+ - Positively correlated groups are found due to the small angle between the vectors: Mercuryy_TPY and Lead_TPY; Heart_Disease, Smoking_Rate, and Poverty; and so on. 
+
+---
+
+## Application 2: Image Classification  
+- PCA is frequently touted as an effective technique to improve image classification tasks through dimensionality reduction [@li2012pcabased].
+- In this application, the effectiveness of PCA was evaluated for a Support Vector Machine (SVM) algorithm and compared to the results from a modern Convolutional Neural Network (CNN).
+- The results from this analysis were used as a feasability assessment for real-world applications in an IoT environment.
+
+### Data Loading and Normalization:
+
+- The CIFAR-10 dataset contains 10,000 images of 10 different classes of labeled objects. 
+- This data was loaded and normalized to have pixel values between 0 and 1 in preparation for training SVM and CNN machine learning models. 
+- Training, validation, and test sets were created.
+
+```{python}
+#| code-fold: true
+import tensorflow as tf
+from sklearn.model_selection import train_test_split
+
+# Loading the training and test sets
+(X_train, y_train), (X_test, y_test) = tf.keras.datasets.cifar10.load_data()
+
+# Normalize the pixel values to range 0-1
+X_train = X_train.astype('float32') / 255
+X_test = X_test.astype('float32') / 255
+
+# Split the training set to create a validation set
+X_train, X_validate, y_train, y_validate = train_test_split(
+    X_train, y_train, test_size=0.15, random_state=42)
+```
+
+---
+
+
+### Principal Component Analysis (PCA)  
+ 
+```{python}
+#| code-fold: true
+from sklearn.decomposition import PCA
+
+# Flatten the X data
+X_train_flat = X_train.reshape((X_train.shape[0], -1))
+X_validate_flat = X_validate.reshape((X_validate.shape[0], -1))
+X_test_flat = X_test.reshape((X_test.shape[0], -1))
+
+# Initialize PCA and fit on the training data
+pca = PCA(n_components=0.95)
+pca.fit(X_train_flat)
+
+# Transform both the training and testing data
+X_train_pca = pca.transform(X_train_flat)
+X_validate_pca = pca.transform(X_validate_flat)
+X_test_pca = pca.transform(X_test_flat)
+```
+
+- After flattening the data, PCA was applied to retain 95% of the explained variance.
+- This significantly reduced the dimensionality of the dataset from 3072 dimensions to <250.
+
+```{python}
+#| code-fold: true
+import matplotlib.pyplot as plt
+import numpy as np
+
+n_components = pca.n_components_
+cumulative_variance = np.cumsum(pca.explained_variance_ratio_)
+
+# Plot the explained variance
+plt.figure(figsize=(8, 4))
+plt.plot(cumulative_variance)
+plt.xlabel('Number of Components')
+plt.ylabel('Cumulative Explained Variance')
+plt.title('Explained Variance')
+plt.grid(True)
+
+# Annotate the number of components used
+plt.annotate(f'components: {n_components}', 
+             xy=(n_components, cumulative_variance[n_components-1]),  # This places the annotation at the point where the number of components is reached
+             xytext=(n_components, cumulative_variance[n_components-1] - 0.10),  # Adjust text position
+             ha='center')
+
+plt.show()
+```
+
+---
+
+### Principal Component Analysis (PCA)
+
+- The original images were compared to the PCA-reconstructed images, illustrating that PCA retains moderate image quality despite significant compression.
+```{python}
+#| code-fold: true
+import matplotlib.pyplot as plt
+
+def plot_images(original, reconstructed, n):
+    plt.figure(figsize=(10, 4))
+    for i in range(n):
+        # Plot original images
+        ax = plt.subplot(2, n, i + 1)
+        plt.imshow(original[i])
+        plt.axis('off')
+        if i == 0:
+            ax.set_title("Original", loc='left')
+
+        # Plot reconstructed images
+        ax = plt.subplot(2, n, n + i + 1)
+        norm_image = (reconstructed[i] - np.min(reconstructed[i])) / (np.max(reconstructed[i]) - np.min(reconstructed[i]))
+        plt.imshow(norm_image)
+        plt.axis('off')
+        if i == 0:
+            ax.set_title("PCA Reconstructed", loc='left')
+
+    plt.show()
+
+# reconstruct the PCA data into 32x32x3 arrays
+X_train_reconstructed = pca.inverse_transform(X_train_pca)
+X_train_reconstructed = X_train_reconstructed.reshape((X_train.shape[0], 32, 32, 3))
+plot_images(X_train, X_train_reconstructed, n=5) # plot first 5 images
+```
+
+---
+
+### Modeling: Support Vector Machine (SVM)
+
+- Traditionally, SVM has been used for image classification.  
+- An SVM model was created on the original flattened data and then compared to an SVM model using the PCA-reduced data. 
+- An rbf kernel was used for nonlinear separation.
+```{python}
+#| code-fold: true
+import pickle
+from sklearn.metrics import accuracy_score
+import time
+import pandas as pd
+
+def load_pickle(path_pkl):
+    with open(path_pkl, 'rb') as file:
+        pickle_file = pickle.load(file)
+    return pickle_file
+
+def evaluate_prediction_time(model, X_test, n=100):
+    X_test = X_test[:n]
+    start_time = time.time()
+    model.predict(X_test)
+    total_time = time.time() - start_time
+    return round(total_time, 2)
+
+# load models
+model_svm_path = '../model/svm.pkl'
+model_svm_pca_path = '../model/svm_PCA.pkl'
+model_svm = load_pickle(model_svm_path)
+model_svm_pca = load_pickle(model_svm_pca_path)
+
+# load predictions
+prediction_path_svm = 'ml_result/test/prediction_svm.pkl'
+prediction_path_svm_pca = 'ml_result/test/prediction_svm_pca.pkl'
+preds_svm = load_pickle(prediction_path_svm)
+preds_svm_pca = load_pickle(prediction_path_svm_pca)
+
+# calculate accuracy
+accuracy_svm = round(accuracy_score(y_test, preds_svm), 3)
+accuracy_svm_pca = round(accuracy_score(y_test, preds_svm_pca), 3)
+
+# evaluate prediction time
+pred_time_svm = evaluate_prediction_time(model_svm, X_test_flat)
+pred_time_svm_pca = evaluate_prediction_time(model_svm_pca, X_test_pca)
+
+
+# Display results for better visualization
+results = pd.DataFrame({
+    'Model': ['SVM', 'SVM with PCA'],
+    'Accuracy': [accuracy_svm, accuracy_svm_pca],
+    'Prediction Time (s), n=100': [pred_time_svm, pred_time_svm_pca]
+})
+print(results)
+```
+- The results show that the PCA model achieved similar accuracy but significantly reduced the prediction time.  
+- This demonstrates the effectiveness of dimensionality reduction in speeding up predictions without compromising accuracy. 
+
+---
+
+
+### Modeling: Convolutional Neural Network (CNN)
+
+- It is important to recognize situations where PCA may not be the optimal choice - CNNs have become the gold-standard for for image classification tasks.
+- PCA is typically not used before input to a CNN because it destroys the spatial complexity by flattening the data structure [@goel2023role].  
+- Architecture: 9-layer CNN, Conv2D layers, 'softmax' for multi-class probs.
+
+```{python}
+#| echo: false
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+```
+```{python}
+#| echo: true
+model_cnn = Sequential([
+    Input(shape=(32, 32, 3)),
+    Conv2D(32, 3, padding='valid', activation='relu'),
+    MaxPooling2D(pool_size=(2, 2)),
+    Dropout(0.25),
+    Conv2D(64, 3, activation='relu'),
+    MaxPooling2D(pool_size=(2, 2)),
+    Dropout(0.25),
+    Conv2D(128, 3, activation='relu'),
+    Flatten(),
+    Dense(64, activation='relu'),
+    Dropout(0.50),
+    Dense(10, activation='softmax'),
+])
+```
+- Model architecture addresses overfitting by using Dropout and MaxPooling2D.   
+
+![](ml_result/validate/training_metrics.png){style="height: 150px; object-fit: cover;"}  
+
+---
+
+### Model Evaluation  
+- Evaluations on test data  
+```{python}
+#| code-fold: true
+from tensorflow.keras.models import load_model
+import os
+
+# load the model
+cnn_model_path = 'model/cnn_tf213.keras'
+model_cnn = load_model(cnn_model_path)
+
+# evaluate accuracy
+test_loss_cnn, test_accuracy_cnn = model_cnn.evaluate(X_test, y_test, verbose=0)
+test_accuracy_cnn = round(test_accuracy_cnn, 3)
+
+# evaluate prediction time
+pred_time_cnn = evaluate_prediction_time(model_cnn, X_test)
+
+# display performance metrics for all 3 models
+new_row = pd.DataFrame({
+    'Model': ['CNN'],
+    'Accuracy': [test_accuracy_cnn],
+    'Prediction Time (s), n=100': [pred_time_cnn]
+})
+results = pd.concat([results, new_row], ignore_index=True)
+
+def get_file_size(file_path):
+    size_bytes = os.path.getsize(file_path)
+    size_mb = size_bytes / (1024 * 1024) # convert to megabytes
+    return round(size_mb, 1)
+
+# append new column for model size
+size_svm = get_file_size(model_svm_path)
+size_svm_pca = get_file_size(model_svm_pca_path)
+size_cnn = get_file_size(cnn_model_path)
+results['Model Size (MB)'] = [size_svm, size_svm_pca, size_cnn]
+print(results)
+```  
+- Prediction time was nearly 5x faster than the SVM with PCA model and with a model size of 2.6 MB and accuracy over over 70%.  
+- These qualities make CNNs a great choice for real-time image classification, deployed directly on IoT devices without prior dimensionality reduction.   
+
+---
+
+## Conclusion  
+
+- PCA Simplifies Data: Principal Component Analysis (PCA) reduces the dimensionality of complex datasets, transforming original variables into uncorrelated principal components.
+
+- Key Benefits: Captures key patterns in data, addresses multicollinearity and overfitting, and enhances computational efficiency and model performance.
+
+- Challenges: Sensitive to outliers and may lose important information in nonlinear relationships.
+
+- Application in U.S. Counties: PCA applied to demographic, health, and environmental data in the deep south of the U.S. revealed four principal components explaining 72% of the variance, covering health, socioeconomic, environmental pollution, and chemical factors.
+
+- Image Data Analysis: While traditionally used in image compression and classification, PCA has been largely supplanted by Convolutional Neural Networks (CNNs), which offer superior accuracy and efficiency.
+
+- CNN vs. PCA: In a CIFAR-10 dataset analysis, CNNs achieved higher accuracy (70.5%) and faster prediction times compared to PCA with SVM (53% accuracy), making CNNs more suitable for real-time processing needs.
+
+- Continued Relevance: Despite the rise of advanced techniques like CNNs, PCA remains valuable in machine learning pipelines for tabular data, highlighting the importance of choosing the appropriate method based on the specific application.
 
 ---
