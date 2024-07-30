@@ -4,13 +4,17 @@ author: "Nick Belgau, Oscar Hernandez Mata"
 date: "2024-08-01"
 format:
   revealjs:
+    width: 1280
+    height: 720
+    toc: true
+    smaller: true
     progress: true
     slide-number: true
-    code-fold: true
 course: STA 6257 - Advanced Statistical Modeling
 bibliography: references.bib # file contains bibtex for references
 self-contained: true
 execute: 
+  echo: true
   warning: false
   message: false
 editor: 
@@ -19,75 +23,83 @@ editor:
 ---
 
 
-## Methods  
+## The Math behind PCA  
 
-### Linear Algebra Foundations  
+::: {.panel-tabset}
 
-Principal Component Analysis (PCA) simplifies multivariate data by transforming the original potentially correlated variables into a smaller set of uncorrelated variables called principal components. The aim of PCA is to reduce the dataset's dimensionality while preserving as much variability as possible. Because the variables will often have different scales or units, standardization is crucial to ensure each variable contributes equally to the analysis. Principal components are obtained by identifying the directions of maximum variability in the data. These components are orthogonal and uncorrelated, with each one capturing a specific amount of the data's variance. This process creates a new coordinate system that simplifies the data structure while retaining its essential characteristics [@johnson2023applied].
+### Why SVD is widely used 
 
-While different methods can be used to determine the principal components, Singular Value Decomposition (SVD) is the most common due to its computational efficiency and numerical stability which makes it a popular choice for popular programming packages. SVD decomposes the data into three simpler matrices, making it possible to handle large datasets effectively. This decomposition allows for a more straightforward calculation of the principal components without explicitly computing the covariance matrix, which can be computationally expensive and numerically unstable. The ability to handle sparse and dense matrices further enhances its versatility and efficiency in diverse applications. These advantages make SVD a preferred method in popular programming packages, ensuring that PCA is performed quickly and accurately.
+**SVD is faster and more accurate than eigen-decomposition**  
+
+Although PCA is traditionally taught through eigen-decomposition of the covariance matrix, Singular Value Decomposition (SVD) is always used in practice.
+
+- Numerical stability: No need to square the covariance matrix ($X^TX$) which can amplify errors; robust against ill-conditioned matrices.
+- Efficient with large datasets: Directly decomposes the data without needing to compute and square the covariance matrix [@johnson2023applied].  
+
+
+:::: {.columns}  
+
+::: {.column width="50%" style="text-align: center;"}
+![](slide_figures/sklearn_logo.png){style="height: 150px; object-fit: cover;"}  
+
+sklearn.decomposition.PCA
+:::
+
+::: {.column width="50%" style="text-align: center;"}
+![](slide_figures/r_logo.jpeg){style="height: 150px; object-fit: cover;"}  
+
+stats::prcomp()
+:::
+
+::::
+
+### Overview of SVD algorithm
+**SVD decomposition**  
+Ensure features are continuous and standardized ($\mu$ = 0, $\sigma$ = 1):   
+$$
+X = U \Sigma V^T
+$$
+Each column of $𝑉$ represents a principal component (PC) which are orthogonal to each other and construct the new axes of maximum variance. 
+
+
+
+**Calculate explained variance by PC**  
+The diagonal singular value matrix $\Sigma$ corresponds to the strength of each PC:  
+$$
+\text{variance_explained} = \frac{\sigma_i^2}{\sum \sigma_i^2}
+$$
+
+**Dimensionality reduction:**  
+- Select PCs: Based on cumulative explained variance target (95%).  
+- Truncate $V$: Select top PCs to reduce dimensions and transform $X$ into a new feature space.
+  $$
+  X_{\text{transformed}} = X V_{\text{selected}}
+  $$
+
+
+### Overview of Assumptions  
+
+The effectiveness of PCA relies on satisfying these points.  
+
+1. **Linearity**  
+PCA assumes that resulting principal components are linear combinations of the original variables. Nonlinear relationships may lead to low covariance values which can lead to an undervalued representation of their signficance.  
+
+2. **Continuous data**  
+PCA begins by standardizing the data, so the features should come from continuous distribution. Because the scale of measurement conveys information about the variance, categorical variables should be handled separately.  
+
+3. **Data standardization**  
+- Scaling standardizes the variance of each variable to ensure equal contributions.  
+- Mean-centering has a similar impact: ensuring that the principal components capture the true direction of maximum variance.   
+- Outliers can also distort the PCs, so they should be identified and handled appropriately.   
+
+:::
+
 ---
 
-### Overview of Algorithm with SVD:  
+## Application 1 - Tabular Demographic Data
 
-1. **Standardize the data**  
-   Ensure each variable contributes equally by having a mean of zero and variance of one. This requires that the variables are continuous.
-   $$
-   X_{\text{standardized}} = \frac{X - \mu}{\sigma}
-   $$
-   $\mu$: mean, $\sigma$: standard deviation of each variable
-
-2. **Perform Singular Value Decomposition (SVD)**  
-  Decompose the standardized data matrix into three matrices $U$, $\Sigma$, and $V^T$.
-  $$
-  X_{\text{standardized}} = U \Sigma V^T
-  $$
-  $𝑈$ and $V^T$ are orthogonal matrices, so therefore $U$ and $V$ are also orthogonal. The diagonal matrix of singular values is represented by $\sigma$ with values $\sigma_i$ that are naturally sorted in descending order. Each column of $𝑉$ represents a principal component (PC) which are orthogonal to each other in the transformed feature space. The number of PC's initially generated are equivalent to the number of variables initially provided in the dataset.
-
-3. **Selection of principal components**  
-  The explained variance of each PC is represented by:
-  $$
-  \text{variance\_explained} = \frac{\sigma_i^2}{\sum \sigma_i^2}
-  $$
-  For each singular value $\sigma_i$ in the matrix of singular values $\Sigma$, compute $\sigma_i^2$ and calculate the individual variance. The cumulative explained variance target is specified (typically 95%) as a criteria for PC selection. Determine the number of components needs to reach the desired cumulative explained variance.
-
-4. **Transform the data**  
-  Project the data onto the selected principal components. This yields the new subspace with reduced dimensions.
-  $$
-  X_{\text{transformed}} = X_{\text{standardized}} V_{\text{selected}}
-  $$
-  where $V_{\text{selected}}$ contains the first number of components columns of $V$. Once the data is transformed onto the selected PC's, it is effectively reduced in dimensionality while retaining most of its original variability.
-
----
-
-
-### Assumptions and Practical Testing  
-
-This section covers the primary assumptions of PCA and details how they can be tested in real-world applications. A more accurate name for this section might be *requirements* since the effectiveness of PCA relies on satisfying these points.
-
-#### 1. Linearity
-**Assumption**: PCA assumes that resulting principal components are linear combinations of the original variables. Nonlinear relationships may lead to low covariance values which can lead to an undervalued representation of their signficance.
-
-**Testing**: Initial checks with scatter plots and correlation matrices can help identify linear relationships between variable pairs. While common, these methods require manual inspection which introduces the potential for the researcher to miss subtler non-linear patterns. Supplementing with statistical tests for linearity can provide a more robust assessment. Transformations can be applied to specific non-linear variables or alternative PCA methods can be utilized such as Kernal PCA [@marukatat2023tutorial].
-
-
-##### 2. Continuous data
-**Assumption**: To calculate principal components, data should be on a continuous scale: either interval or ratio. It should be mentioned that despite being ordinal, Likert Scales are often used because the distance between scale points are assumed to be approximately equivalent.  
-
-**Testing**: Reviewing column data types and value counts are practical methods for testing. Simple transformations can be applied to categorical data.
-
-#### 3. Data standardization 
-
-**Assumption**: There are three critical preprocessing steps: scaling, mean-centering, and outlier handling. Scaling standardizes the variance of each variable to ensure equal contributions. Mean-centering has a similar impact: ensuring that the principal components capture the true direction of maximum variance. Outliers can also distort the principal components, so they should be identified and handled appropriately. Together these methods prevent variables with larger measured values from dominating the principal components and skewing results.
-
-**Testing**: Data will usually not arrive in a condition that meets this requirement. Luckily, statistical packages in common programming languages offer simple methods to scale and mean-center data. Outliers can be detected using a variety of distribution plots, but automated methods could be employed for larger datasets which is beyond the scope of this paper.  
-
----
-
-## Application 1 - Analysis and Results
-
-Load the required libaries:
 ```{r}
+#| echo: false
 library(readxl)
 library(skimr)
 library(dplyr)
@@ -125,13 +137,7 @@ The dataset contains demographic, health, and environmental metrics for counties
 ```{r}
 url <- "https://raw.githubusercontent.com/nickbelgau/STA6257_PCA/main/data/demographic/Alz_mortality_data_complete_with_state_csv.csv"
 data_raw <- read_csv(url)
-```
 
-### Filtered Dataset and Inspection  
-
-The dataset was filtered to analyze only selected variables for states in the deep south in the United States. The county and state columns were removed, creating 1 entire region on the dataset. Columns were selected to remove demographic fields related to gender, sex, and race and ambigious fields related to grouping.
-
-```{r}
 selected_columns <- c(
   "County", "State", "obesity_age_adj", "Smoking_Rate", "Diabetes", "Heart_Disease", "Cancer",  "Mercury_TPY", "Lead_TPY", "Food_index", "Poverty_Percent", "Atrazine_High_KG", "SUNLIGHT"
 )
@@ -146,11 +152,20 @@ data <- data %>%
   select(-County, -State)
 ```
 
+
+The dataset was filtered to analyze only selected variables for states in the deep south in the United States. The county and state columns were removed, creating 1 entire region on the dataset. Columns were selected to remove demographic fields related to gender, sex, and race and ambigious fields related to grouping.
+
+
 The variables appear to be continuous because the data types are "numeric" with high cardinality. There are no nulls. It is clear that scaling and mean-centering will be needed.  
 
 ```{r}
 skim(data)
 ```
+
+
+---
+
+
 
 ### Linarity Analysis  
 PCA works on the premise that principal components are linear combinations of the original features. Linearity between variables boosts PCA efficiency, while its absence may cause information loss. Statistical pairwise testing can automate the identification of non-linear relationships, providing a practical alternative to time-intensive visual inspection methods which is particularly helpful for large datasets.  
@@ -227,6 +242,7 @@ ggplot(data_residual, aes(x = obesity_age_adj, y = residuals)) +
   theme_minimal()
 ```
 
+---
 
 ### Outliers Analysis  
 Outliers can distort PCA results by disproportionately increasing variance, shifting the direction of principal components, and inflating eigenvalues. Before implementing outlier removal techniques, it is crucial to first examine the distribution to validate the rationale behind outlier exclusion. Although PCA does not require normality, a roughly normal distribution minimizes the impact from outliers. Non-normal data may undergo transformations like the Box-Cox to approximate normality. Assessing skewness and kurtosis offers practical insights into distribution characteristics.
@@ -296,6 +312,8 @@ lambda_df <- data.frame(
 )
 print(lambda_df)
 ```
+
+---
 
 ### Correlation Analysis
 A heatmap of the correlation matrix was analyzed to identify highly correlated variables, indicating potential multicollinearity within the dataset. By applying PCA, correlated variables can be transformed into orthogonal components which eliminate multicollinearity. This transformation ensures each principal component captures unique variance, improving the clarity and reliability of modeling.

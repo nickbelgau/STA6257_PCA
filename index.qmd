@@ -62,7 +62,7 @@ While different methods can be used to determine the principal components, Singu
 3. **Selection of principal components**  
   The explained variance of each PC is represented by:
   $$
-  \text{variance\_explained} = \frac{\sigma_i^2}{\sum \sigma_i^2}
+  \text{variance_explained} = \frac{\sigma_i^2}{\sum \sigma_i^2}
   $$
   For each singular value $\sigma_i$ in the matrix of singular values $\Sigma$, compute $\sigma_i^2$ and calculate the individual variance. The cumulative explained variance target is specified (typically 95%) as a criteria for PC selection. Determine the number of components needs to reach the desired cumulative explained variance.
 
