@@ -1,0 +1,286 @@
+---
+title: "Practical Implementations of Principal Component Analysis"
+author: "Nick Belgau, Oscar Hernandez Mata"
+date: "2024-08-01"
+format:
+  revealjs:
+    toc: true
+    smaller: true
+    progress: true
+    slide-number: true
+    width: 1280
+    height: 960
+course: STA 6257 - Advanced Statistical Modeling
+bibliography: references.bib # file contains bibtex for references
+self-contained: true
+execute: 
+  echo: true
+  warning: false
+  message: false
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+
+## Application 2: Image Classification  
+- PCA is frequently touted as an effective technique to improve image classification tasks through dimensionality reduction [@li2012pcabased].
+- In this application, the effectiveness of PCA was evaluated for a Support Vector Machine (SVM) algorithm and compared to the results from a modern Convolutional Neural Network (CNN).
+- The results from this analysis were used as a feasability assessment for real-world applications in an IoT environment.
+
+### Data Loading and Normalization:
+
+- The CIFAR-10 dataset contains 10,000 images of 10 different classes of labeled objects. 
+- This data was loaded and normalized to have pixel values between 0 and 1 in preparation for training SVM and CNN machine learning models. 
+- Training, validation, and test sets were created.
+
+```{python}
+#| code-fold: true
+import tensorflow as tf
+from sklearn.model_selection import train_test_split
+
+# Loading the training and test sets
+(X_train, y_train), (X_test, y_test) = tf.keras.datasets.cifar10.load_data()
+
+# Normalize the pixel values to range 0-1
+X_train = X_train.astype('float32') / 255
+X_test = X_test.astype('float32') / 255
+
+# Split the training set to create a validation set
+X_train, X_validate, y_train, y_validate = train_test_split(
+    X_train, y_train, test_size=0.15, random_state=42)
+```
+
+---
+
+### Principal Component Analysis (PCA)  
+ 
+```{python}
+#| echo: false
+from sklearn.decomposition import PCA
+
+# Flatten the X data
+X_train_flat = X_train.reshape((X_train.shape[0], -1))
+X_validate_flat = X_validate.reshape((X_validate.shape[0], -1))
+X_test_flat = X_test.reshape((X_test.shape[0], -1))
+
+# Initialize PCA and fit on the training data
+pca = PCA(n_components=0.95)
+pca.fit(X_train_flat)
+
+# Transform both the training and testing data
+X_train_pca = pca.transform(X_train_flat)
+X_validate_pca = pca.transform(X_validate_flat)
+X_test_pca = pca.transform(X_test_flat)
+```
+
+- After flattening the data, PCA was applied to retain 95% of the explained variance.
+- This significantly reduced the dimensionality of the dataset from 3072 dimensions to under 250 dimensions.
+
+```{python}
+#| code-fold: true
+import matplotlib.pyplot as plt
+import numpy as np
+
+n_components = pca.n_components_
+cumulative_variance = np.cumsum(pca.explained_variance_ratio_)
+
+# Plot the explained variance
+plt.figure(figsize=(8, 4))
+plt.plot(cumulative_variance)
+plt.xlabel('Number of Components')
+plt.ylabel('Cumulative Explained Variance')
+plt.title('Explained Variance')
+plt.grid(True)
+
+# Annotate the number of components used
+plt.annotate(f'components: {n_components}', 
+             xy=(n_components, cumulative_variance[n_components-1]),  # This places the annotation at the point where the number of components is reached
+             xytext=(n_components, cumulative_variance[n_components-1] - 0.10),  # Adjust text position
+             ha='center')
+
+plt.show()
+```
+
+---
+### Principal Component Analysis (PCA)
+
+- The original images were compared to the PCA-reconstructed images, illustrating that PCA retains moderate image quality despite significant compression.
+```{python}
+#| code-fold: true
+import matplotlib.pyplot as plt
+
+def plot_images(original, reconstructed, n):
+    plt.figure(figsize=(10, 4))
+    for i in range(n):
+        # Plot original images
+        ax = plt.subplot(2, n, i + 1)
+        plt.imshow(original[i])
+        plt.axis('off')
+        if i == 0:
+            ax.set_title("Original", loc='left')
+
+        # Plot reconstructed images
+        ax = plt.subplot(2, n, n + i + 1)
+        norm_image = (reconstructed[i] - np.min(reconstructed[i])) / (np.max(reconstructed[i]) - np.min(reconstructed[i]))
+        plt.imshow(norm_image)
+        plt.axis('off')
+        if i == 0:
+            ax.set_title("PCA Reconstructed", loc='left')
+
+    plt.show()
+
+# reconstruct the PCA data into 32x32x3 arrays
+X_train_reconstructed = pca.inverse_transform(X_train_pca)
+X_train_reconstructed = X_train_reconstructed.reshape((X_train.shape[0], 32, 32, 3))
+plot_images(X_train, X_train_reconstructed, n=5) # plot first 5 images
+```
+
+---
+
+### Modeling: Support Vector Machine (SVM)
+
+- Traditionally, SVM has been used for image classification.  
+- An SVM model was created on the original flattened data and then compared to an SVM model using the PCA-reduced data. 
+- An rbf kernel was used for nonlinear separation.
+```{python}
+#| code-fold: true
+import pickle
+from sklearn.metrics import accuracy_score
+import time
+import pandas as pd
+
+def load_pickle(path_pkl):
+    with open(path_pkl, 'rb') as file:
+        pickle_file = pickle.load(file)
+    return pickle_file
+
+def evaluate_prediction_time(model, X_test, n=100):
+    X_test = X_test[:n]
+    start_time = time.time()
+    model.predict(X_test)
+    total_time = time.time() - start_time
+    return round(total_time, 2)
+
+# load models
+model_svm_path = '../model/svm.pkl'
+model_svm_pca_path = '../model/svm_PCA.pkl'
+model_svm = load_pickle(model_svm_path)
+model_svm_pca = load_pickle(model_svm_pca_path)
+
+# load predictions
+prediction_path_svm = 'ml_result/test/prediction_svm.pkl'
+prediction_path_svm_pca = 'ml_result/test/prediction_svm_pca.pkl'
+preds_svm = load_pickle(prediction_path_svm)
+preds_svm_pca = load_pickle(prediction_path_svm_pca)
+
+# calculate accuracy
+accuracy_svm = round(accuracy_score(y_test, preds_svm), 3)
+accuracy_svm_pca = round(accuracy_score(y_test, preds_svm_pca), 3)
+
+# evaluate prediction time
+pred_time_svm = evaluate_prediction_time(model_svm, X_test_flat)
+pred_time_svm_pca = evaluate_prediction_time(model_svm_pca, X_test_pca)
+
+
+# Display results for better visualization
+results = pd.DataFrame({
+    'Model': ['SVM', 'SVM with PCA'],
+    'Accuracy': [accuracy_svm, accuracy_svm_pca],
+    'Prediction Time (s), n=100': [pred_time_svm, pred_time_svm_pca]
+})
+print(results)
+```
+- The results show that the PCA model achieved similar accuracy but significantly reduced the prediction time.  
+- This demonstrates the effectiveness of dimensionality reduction in speeding up predictions without compromising accuracy. 
+
+---
+
+### Modeling: Convolutional Neural Network (CNN)
+
+- It is important to recognize situations where PCA may not be the optimal choice - CNNs have become the gold-standard for for image classification tasks.
+- PCA is typically not used before input to a CNN because it destroys the spatial complexity by flattening the data structure [@goel2023role].  
+- Architecture: 9-layer CNN, Conv2D layers, 'softmax' for multi-class probs.
+
+```{python}
+#| echo: false
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+```
+```{python}
+#| echo: true
+model_cnn = Sequential([
+    Input(shape=(32, 32, 3)),
+    Conv2D(32, 3, padding='valid', activation='relu'),
+    MaxPooling2D(pool_size=(2, 2)),
+    Dropout(0.25),
+    Conv2D(64, 3, activation='relu'),
+    MaxPooling2D(pool_size=(2, 2)),
+    Dropout(0.25),
+    Conv2D(128, 3, activation='relu'),
+    Flatten(),
+    Dense(64, activation='relu'),
+    Dropout(0.50),
+    Dense(10, activation='softmax'),
+])
+```
+- Model architecture addresses overfitting by using Dropout and MaxPooling2D.  
+```{python}
+#| echo: false
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+
+# Load and display the image
+img_path = 'ml_result/validate/training_metrics.png'
+img = mpimg.imread(img_path)
+plt.imshow(img)
+plt.axis('off')
+plt.show()
+```
+
+---
+
+### Model Evaluation
+- Evaluations on test data
+```{python}
+#| code-fold: true
+from tensorflow.keras.models import load_model
+import os
+
+# load the model
+cnn_model_path = 'model/cnn_tf213.keras'
+model_cnn = load_model(cnn_model_path)
+
+# evaluate accuracy
+test_loss_cnn, test_accuracy_cnn = model_cnn.evaluate(X_test, y_test, verbose=0)
+test_accuracy_cnn = round(test_accuracy_cnn, 3)
+
+# evaluate prediction time
+pred_time_cnn = evaluate_prediction_time(model_cnn, X_test)
+
+# display performance metrics for all 3 models
+new_row = pd.DataFrame({
+    'Model': ['CNN'],
+    'Accuracy': [test_accuracy_cnn],
+    'Prediction Time (s), n=100': [pred_time_cnn]
+})
+results = pd.concat([results, new_row], ignore_index=True)
+
+def get_file_size(file_path):
+    size_bytes = os.path.getsize(file_path)
+    size_mb = size_bytes / (1024 * 1024) # convert to megabytes
+    return round(size_mb, 1)
+
+# append new column for model size
+size_svm = get_file_size(model_svm_path)
+size_svm_pca = get_file_size(model_svm_pca_path)
+size_cnn = get_file_size(cnn_model_path)
+results['Model Size (MB)'] = [size_svm, size_svm_pca, size_cnn]
+print(results)
+```
+
+- Prediction time was nearly 5x faster than the SVM with PCA model and with a model size of 2.6 MB and accuracy over over 70%.  
+
+- These qualities make CNNs a great choice for real-time image classification, deployed directly on IoT devices without prior dimensionality reduction.   
+
+---

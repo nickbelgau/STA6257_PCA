@@ -41,13 +41,13 @@ Although PCA is traditionally taught through eigen-decomposition of the covarian
 
 :::: {.columns}  
 
-::: {.column width="50%" style="text-align: center;"}
+::: {.column style="text-align: center;"}
 ![](figures/sklearn_logo.png){style="height: 150px; object-fit: cover;"}  
 
 sklearn.decomposition.PCA
 :::
 
-::: {.column width="50%" style="text-align: center;"}
+::: {.column style="text-align: center;"}
 ![](figures/r_logo.jpeg){style="height: 150px; object-fit: cover;"}  
 
 stats::prcomp()
@@ -170,8 +170,7 @@ The dataset is derived from US census data and contains demographic, health, and
 
 ---
 
-## Application 1 - Demographic Data {.scrollable}  
-### Check Assumptions: Continuous Variables  
+### Check Assumptions: Continuous Variables {.scrollable}  
 
 - The variables appear to be continuous because the data types are "numeric" with high cardinality.  
 - There are no nulls.  
@@ -183,10 +182,10 @@ skim(data)
 
 ---
 
-## Application 1 - Demographic Data 
 ### Check Assumptions: Linarity Analysis  
 
-The Harvey-Collier Test can automate this by running pairwise test for linearity, and if a significant nonzero slope on the residuals exists, the p-value will be less than alpha [@nwakuya2022instability] [@harvey1977testing]. 
+- The Harvey-Collier Test can automate this by running pairwise test for linearity.  
+- If a significant nonzero slope on the residuals exists, the p-value will be less than alpha [@nwakuya2022instability] [@harvey1977testing]. 
 
 **Visually checking scatter plots is not a realistic method for inspecting linearity in real-world applications. Correlation plots are insufficient.**  
 
@@ -211,14 +210,43 @@ for (i in 1:n) {
     }
   }
 }
+
+library(ggplot2)
+
+p_matrix_long <- melt(p_matrix)
+names(p_matrix_long) <- c("Var1", "Var2", "p_value")
+
+p_matrix_long$Var1 <- factor(p_matrix_long$Var1, levels = rev(unique(p_matrix_long$Var1)))
+
+alpha = 0.0001
+
+gradient_fill <- scale_fill_gradientn(
+  colors = c("#215B9D", "#F0F0F0", "#F0F0F0"),
+  values = scales::rescale(c(0, alpha, 1)),
+  na.value = "#F0F0F0",  # Also set missing values to light grey
+  guide = "colourbar"
+)
+
+ggplot(p_matrix_long, aes(Var1, Var2, fill= p_value)) + 
+  geom_tile(color = "white") +
+  geom_text(aes(label = sprintf("%.2e", p_value)), color = "black", size = 2) + 
+  gradient_fill +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+        axis.text.y = element_text(size = 10),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        legend.position = "none") + 
+  labs(title = "Heatmap of P-Values") 
 ```
 
-<img src="figures/harvey_collier_heatmap.png" width="60%" height="auto"/>
+- Note: the assymetry is due to X~Y and Y~X for recursive residuals.
 
 
 ---
 
-## Application 1 - Demographic Data 
 ### Check Assumptions: Linarity Analysis (continued) 
 
 - The residual plot for a single pair that was flagged as nonlinear reveals why the Harvey-Collier Test declared nonlinearity.  
@@ -241,7 +269,6 @@ ggplot(data_residual, aes(x = obesity_age_adj, y = residuals)) +
 
 ---
 
-## Application 1 - Demographic Data 
 ### Check Assumptions: Outliers Analysis  
 
 **note: the mean-centering and scaling is handled within the PCA implementation**  
@@ -295,7 +322,6 @@ for (col in columns_to_transform) {
 
 ---
 
-## Application 1 - Demographic Data 
 ### Check Assumptions: Outliers Analysis (continued) 
 
 - The Box-Cox transformation can normalize the data distribution, enhancing its suitability for PCA [@compression2014boxcox].  
@@ -349,11 +375,14 @@ print(lambda_df)
 
 ---
 
-## Application 1 - Demographic Data 
-### Correlation Analysis  
- 
-- While not a complete diagnosis, identifying highly correlated variables can indicate multicollinearity within the dataset (VIF will be looked at later).  
-- This provides insights to the effectiveness of PCA because correlated variables can be transformed into orthogonal components which eliminate multicollinearity.  
+### Multicollinearity Analysis  
+
+::: {.columns}  
+
+::: {.column width="70%"}  
+**Correlation**  
+- While not a complete diagnosis, identifying highly correlated variables can be used to approximate the effectiveness of PCA.  
+- Recall that PCA eliminates multicollinearity because the PCs are orthogonal [@altman2018curse].
 
 ```{r}
 #| echo: false
@@ -376,5 +405,25 @@ corrplot(abs(cor_matrix), method = "color",
          bg = "white"
 )
 ```
+
+:::
+
+::: {.column width="30%"}  
+**Variation Inflation Factor (VIF)**  
+- Consider a scenario where 'Heart_Disease' is chosen as the dependent variable to model. 
+- Multicollinearity between variables such as 'obesity_age_adj' and 'Diabetes'. 
+
+```{r}
+#| code-fold: true
+library(car)
+data_df <-data.frame(data_transform)
+model <- lm(Heart_Disease ~ ., data=data_df)
+
+data.frame(VIF=vif(model))
+```
+
+:::
+
+:::
 
 ---

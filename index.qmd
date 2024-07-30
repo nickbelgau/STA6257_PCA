@@ -315,8 +315,9 @@ lambda_df <- data.frame(
 print(lambda_df)
 ```
 
-### Correlation Analysis
-A heatmap of the correlation matrix was analyzed to identify highly correlated variables, indicating potential multicollinearity within the dataset. By applying PCA, correlated variables can be transformed into orthogonal components which eliminate multicollinearity. This transformation ensures each principal component captures unique variance, improving the clarity and reliability of modeling.
+### Multicollinearity Analysis
+
+While not a complete diagnosis of multicollinearity, a heatmap of the correlation matrix was analyzed to identify highly correlated variables. By applying PCA, correlated variables can be transformed into orthogonal components which eliminate multicollinearity.
 
 ```{r}
 library(corrplot)
@@ -337,6 +338,15 @@ corrplot(abs(cor_matrix), method = "color",
          col = color_palette,
          bg = "white"
 )
+```
+
+PCA aids in building more robust statistical models by reducing multicollinearity and removing redundant information. For example, consider a scenario where 'Heart_Disease' is chosen as the dependent variable to model. Before applying PCA, the collinearity can be assessed by using the Variance Inflation Factor (VIF). Initial VIF results confirm multicollinearity between variables such as 'obesity_age_adj' and 'Diabetes', as suggested by the biplot. After implementing PCA, the principal components are orthogonal to each other and, therefore, uncorrelated. This reduction in multicollinearity not only stabilizes and simplifies the model but also enhances its interpretability and generalizability [@altman2018curse].
+```{r}
+library(car)
+data_df <-data.frame(data_transform)
+model <- lm(Heart_Disease ~ ., data=data_df)
+
+data.frame(VIF=vif(model))
 ```
 
 ### Principal Component Analysis
@@ -388,15 +398,6 @@ autoplot(pca_result,
 ```
 From the results, it's clear that Food_index is negatively correlated to obesity_age_adj and Diabetes which contributes redundant information to the dataset. Additional positively correlated groups are found due to the small angle between the vectors: Mercuryy_TPY and Lead_TPY; Heart_Disease, Smoking_Rate, and Poverty; and so on. The biplot provides valuable information to understand these relationships.  
 
-
-PCA aids in building more robust statistical models by reducing multicollinearity and removing redundant information. For example, consider a scenario where 'Heart_Disease' is chosen as the dependent variable to model. Before applying PCA, the collinearity can be assessed by using the Variance Inflation Factor (VIF). Initial VIF results confirm multicollinearity between variables such as 'obesity_age_adj' and 'Diabetes', as suggested by the biplot. After implementing PCA, the principal components are orthogonal to each other and, therefore, uncorrelated. This reduction in multicollinearity not only stabilizes and simplifies the model but also enhances its interpretability and generalizability [@altman2018curse].
-```{r}
-library(car)
-data_df <-data.frame(data_transform)
-model <- lm(Heart_Disease ~ ., data=data_df)
-
-data.frame(VIF=vif(model))
-```
 
 Lastly, the impact of transforming certain variables using the Box-Cox transformation resulted in an improvement by retaining more information. This is apparent by the higher explained variance.
 ```{r}
