@@ -1,0 +1,154 @@
+---
+title: "Shivani_PCA_Presentation"
+author: "Shivani"
+format: revealjs
+editor: visual
+---
+
+## Introduction
+
+Principal Component Analysis (PCA) is a statistical technique used for dimensionality reduction. It transforms the data into a new coordinate system where the greatest variance comes to lie on the first coordinate (principal component), the second greatest variance on the second coordinate, and so on.
+
+------------------------------------------------------------------------
+
+## Dataset
+
+Source: Data.World Description: Each record represents 100 grams of food items. Nutrients measured in:
+
+-   Grams (g)
+-   Milligrams (mg)
+-   Micrograms (mcg)
+-   Percentage of US Recommended Daily Allowance (USRDA)
+
+------------------------------------------------------------------------
+
+### Data Preparation
+
+1.  **Install Required Libraries**
+
+    ``` r
+    #install.packages("MASS")
+    library(MASS)
+    library(factoextra)
+    library(ggplot2)
+    library(readr)
+    library(dplyr)
+    library(caret)
+    library(tibble)
+    ```
+
+2.  **Load Data**
+
+    ``` r
+    url <- "https://query.data.world/s/ll77ildgnhhove7mlker3g2jw7z5qr?dws=00000"
+    data <- read.csv(url, header=TRUE, stringsAsFactors=FALSE)
+    ```
+
+3.  **Data Structure**
+
+    ``` r
+    str(data)
+    ```
+
+4.  **Remove USRDA Columns**
+
+    ``` r
+    data_omit_usrda <- data %>% dplyr::select(-contains('_USRDA'))
+    str(data_omit_usrda)
+    ```
+
+5.  **Select Numeric Data**
+
+    ``` r
+    data_numeric <- data_omit_usrda %>% dplyr::select(where(is.numeric))
+    ```
+
+------------------------------------------------------------------------
+
+### Data Exploration
+
+-   **Correlation Matrix**
+
+    ``` r
+    cor(data_numeric)
+    ```
+
+-   **Histograms of Nutrients**
+
+    ``` r
+    df_new %>% gather() %>% ggplot(aes(value)) + 
+      geom_histogram(bins=50) + 
+      facet_wrap(~key, scales='free') + 
+      theme_minimal()
+    ```
+
+------------------------------------------------------------------------
+
+### PCA Implementation
+
+1.  **Scale Data**
+
+    ``` r
+    df <- scale(df_new)
+    ```
+
+2.  **Perform PCA**
+
+    ``` r
+    pca <- prcomp(df, scale = TRUE)
+    ```
+
+3.  **Explained Variance**
+
+    ``` r
+    explained_variance <- pca$sdev^2 / sum(pca$sdev^2)
+    ```
+
+4.  **Plot Explained Variance**
+
+    ``` r
+    qplot(1:length(pca$sdev^2), pca$sdev^2 / sum(pca$sdev^2), geom="line")
+    ```
+
+5.  **Principal Components DataFrame**
+
+    ``` r
+    pca_df <- as.data.frame(pca$x[, 1:5])
+    pca_df <- rownames_to_column(pca_df, var = "ID")
+    names(pca_df)[2:6] <- c('c1', 'c2', 'c3', 'c4', 'c5')
+    ```
+
+------------------------------------------------------------------------
+
+### Results
+
+-   **Explained Variance of Top 5 Components**
+
+    ``` r
+    cat(sum(explained_variance[1:5]), "\n")  # 63.78%
+    ```
+
+-   **Correlation Matrix of Principal Components**
+
+    ``` r
+    round(cor(pca_df[, 2:6]), 5)
+    ```
+
+-   **Principal Component Loadings**
+
+    ``` r
+    vects <- pca$rotation[, 1:5]
+    one <- sort(vects[, 1], decreasing = TRUE)
+    two <- sort(vects[, 2], decreasing = TRUE)
+    three <- sort(vects[, 3], decreasing = TRUE)
+    four <- sort(vects[, 4], decreasing = TRUE)
+    five <- sort(vects[, 5], decreasing = TRUE)
+    ```
+
+------------------------------------------------------------------------
+
+### Conclusion
+
+-   PCA helps in reducing the dimensionality of the dataset while retaining most of the variance.
+-   The first few principal components explain a significant portion of the variance in the dataset.
+-   This technique is useful for visualizing high-dimensional data and improving the performance of machine learning models.
