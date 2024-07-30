@@ -4,12 +4,14 @@ author: "Nick Belgau, Oscar Hernandez Mata"
 date: "2024-08-01"
 format:
   revealjs:
-    width: 1280
-    height: 720
     toc: true
     smaller: true
     progress: true
     slide-number: true
+    width: 1280
+    height: 960
+
+    
 course: STA 6257 - Advanced Statistical Modeling
 bibliography: references.bib # file contains bibtex for references
 self-contained: true
@@ -40,13 +42,13 @@ Although PCA is traditionally taught through eigen-decomposition of the covarian
 :::: {.columns}  
 
 ::: {.column width="50%" style="text-align: center;"}
-![](slide_figures/sklearn_logo.png){style="height: 150px; object-fit: cover;"}  
+![](figures/sklearn_logo.png){style="height: 150px; object-fit: cover;"}  
 
 sklearn.decomposition.PCA
 :::
 
 ::: {.column width="50%" style="text-align: center;"}
-![](slide_figures/r_logo.jpeg){style="height: 150px; object-fit: cover;"}  
+![](figures/r_logo.jpeg){style="height: 150px; object-fit: cover;"}  
 
 stats::prcomp()
 :::
@@ -96,7 +98,7 @@ PCA begins by standardizing the data, so the features should come from continuou
 
 ---
 
-## Application 1 - Tabular Demographic Data
+## Application 1 - Demographic Data
 
 ```{r}
 #| echo: false
@@ -117,24 +119,7 @@ library(stats)
 library(ggfortify)
 library(lmtest)
 library(car)
-```
 
-### Dataset Description
-
-The dataset contains demographic, health, and environmental metrics for counties in the United States from US census data. Each row represents data for a specific county of a state [@tejada_vera_2013] [@amin_2018]. The columns analyzed were:  
-- obesity_age_adj: Age-adjusted obesity rate.  
-- Smoking_Rate: Rate of smoking within the population.  
-- Diabetes: Diabetes prevalence rate.  
-- Heart_Disease: Heart disease prevalence rate.  
-- Cancer: Cancer prevalence rate.  
-- Food Index: Index score representing food availability and quality.  
-- Poverty_Percent: Percentage of the population living below the poverty line.  
-- physical_inactivity: Rate of physical inactivity.  
-- Mercury_TPY: Mercury emissions in tons per year.  
-- Lead_TPY: Lead emissions in tons per year.  
-- Atrazine_High_KG: Atrazine in KG per year.  
-
-```{r}
 url <- "https://raw.githubusercontent.com/nickbelgau/STA6257_PCA/main/data/demographic/Alz_mortality_data_complete_with_state_csv.csv"
 data_raw <- read_csv(url)
 
@@ -152,27 +137,61 @@ data <- data %>%
   select(-County, -State)
 ```
 
+### Dataset Description
 
-The dataset was filtered to analyze only selected variables for states in the deep south in the United States. The county and state columns were removed, creating 1 entire region on the dataset. Columns were selected to remove demographic fields related to gender, sex, and race and ambigious fields related to grouping.
+This application was inspired by a paper published by UWF (Amin, Yacko, and Guttmann) on Alzheimer's disease mortality [@tejada_vera_2013] [@amin_2018].
+
+The dataset is derived from US census data and contains demographic, health, and environmental metrics for counties in the United States. The dataset was filtered to select counties in the deep south.  
+
+::: {.column width="70%"}
+ 
+![](figures/highlighted_states.png)  
+
+:::
+
+::: {.column width="30%"}
+
+| **Column**          |
+|---------------------|
+| Obesity Age Adj     |
+| Smoking Rate        |
+| Diabetes            |
+| Heart Disease       |
+| Cancer              | 
+| Food Index          |
+| Poverty Percent     |
+| Physical Inactivity |
+| Mercury TPY         |
+| Lead TPY            |
+| Atrazine High KG    |
+
+:::
 
 
-The variables appear to be continuous because the data types are "numeric" with high cardinality. There are no nulls. It is clear that scaling and mean-centering will be needed.  
+---
+
+## Application 1 - Demographic Data {.scrollable}  
+### Check Assumptions: Continuous Variables  
+
+- The variables appear to be continuous because the data types are "numeric" with high cardinality.  
+- There are no nulls.  
+- It is clear that scaling and mean-centering will be needed.  
 
 ```{r}
 skim(data)
 ```
 
-
 ---
 
+## Application 1 - Demographic Data 
+### Check Assumptions: Linarity Analysis  
 
+The Harvey-Collier Test can automate this by running pairwise test for linearity, and if a significant nonzero slope on the residuals exists, the p-value will be less than alpha [@nwakuya2022instability] [@harvey1977testing]. 
 
-### Linarity Analysis  
-PCA works on the premise that principal components are linear combinations of the original features. Linearity between variables boosts PCA efficiency, while its absence may cause information loss. Statistical pairwise testing can automate the identification of non-linear relationships, providing a practical alternative to time-intensive visual inspection methods which is particularly helpful for large datasets.  
-
-The Harvey-Collier Test for Linearity fits a linear model to each variable pair, calculates recursive residuals, and conducts regression again on these residuals [@nwakuya2022instability] [@harvey1977testing]. A significant nonzero slope in the residual regression indicates non-linearity, suggesting potential information loss in PCA.
+**Visually checking scatter plots is not a realistic method for inspecting linearity in real-world applications. Correlation plots are insufficient.**  
 
 ```{r}
+#| code-fold: true
 harvey_collier_test <- function(data, x, y) {
   formula <- as.formula(paste(y, "~", x))
   model <- lm(formula, data = data)
@@ -193,42 +212,20 @@ for (i in 1:n) {
   }
 }
 ```
-When the p-value is less than the signficance level, the test declares that the relationship is nonlinear. A heatmap of the p-values reveals which pairs are nonlinear with color-coding. 
-```{r}
-library(ggplot2)
 
-p_matrix_long <- melt(p_matrix)
-names(p_matrix_long) <- c("Var1", "Var2", "p_value")
+<img src="figures/harvey_collier_heatmap.png" width="60%" height="auto"/>
 
-p_matrix_long$Var1 <- factor(p_matrix_long$Var1, levels = rev(unique(p_matrix_long$Var1)))
 
-alpha = 0.0001
+---
 
-gradient_fill <- scale_fill_gradientn(
-  colors = c("#215B9D", "#F0F0F0", "#F0F0F0"),
-  values = scales::rescale(c(0, alpha, 1)),
-  na.value = "#F0F0F0",  # Also set missing values to light grey
-  guide = "colourbar"
-)
+## Application 1 - Demographic Data 
+### Check Assumptions: Linarity Analysis (continued) 
 
-ggplot(p_matrix_long, aes(Var1, Var2, fill= p_value)) + 
-  geom_tile(color = "white") +
-  geom_text(aes(label = sprintf("%.2e", p_value)), color = "black", size = 2) + 
-  gradient_fill +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
-        axis.text.y = element_text(size = 10),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        legend.position = "none") + 
-  labs(title = "Heatmap of P-Values") 
-```
-
-The residual plot for a single pair that was flagged as nonlinear reveals why the Harvey-Collier Test declared nonlinearity. Although transformations can adjust linearity, they risk altering other variable relationships. Thus, no transformations were applied, acknowledging some information loss in PCA.
+- The residual plot for a single pair that was flagged as nonlinear reveals why the Harvey-Collier Test declared nonlinearity.  
+- Transformations may risk altering other variable relationships, so no transformations were applied, acknowledging some information loss in PCA.
 
 ```{r}
+#| code-fold: true
 data_residual <- as.data.frame(data)
 
 data_residual$residuals <- residuals(lm(Diabetes ~ obesity_age_adj, data = data_residual))
@@ -244,10 +241,20 @@ ggplot(data_residual, aes(x = obesity_age_adj, y = residuals)) +
 
 ---
 
-### Outliers Analysis  
-Outliers can distort PCA results by disproportionately increasing variance, shifting the direction of principal components, and inflating eigenvalues. Before implementing outlier removal techniques, it is crucial to first examine the distribution to validate the rationale behind outlier exclusion. Although PCA does not require normality, a roughly normal distribution minimizes the impact from outliers. Non-normal data may undergo transformations like the Box-Cox to approximate normality. Assessing skewness and kurtosis offers practical insights into distribution characteristics.
+## Application 1 - Demographic Data 
+### Check Assumptions: Outliers Analysis  
+
+**note: the mean-centering and scaling is handled within the PCA implementation**  
+
+- Outliers can distort PCA results by disproportionately increasing variance, shifting the direction of principal components, and inflating eigenvalues.  
+- Although PCA does not require normality, a roughly normal distribution minimizes the impact from outliers.  
+- Non-normal data may undergo transformations like the Box-Cox to approximate normality.  
+- Assessing skewness and kurtosis offers practical insights into distribution characteristics.
+
+::: {.column width="35%"}  
 
 ```{r}
+#| echo: false
 library(moments)
 
 distribution_metrics <- function(df) {
@@ -261,24 +268,44 @@ distribution_metrics <- function(df) {
 
 print(distribution_metrics(data))
 ```
-This analysis reveals columns with high kurtosis and skewness. Boxplots confirm that these are variables are right-skewed with numerous outliers, suggesting the need for transformation to improve PCA.
+
+:::
+
+::: {.column width="65%"}  
+
 ```{r}
+#| echo: false
 columns_to_transform <- c("Lead_TPY", "Mercury_TPY", "Atrazine_High_KG")
 
-par(mfrow=c(3, 1)) # format
+par(mfrow=c(3, 1), mai=c(0.5, 0.8, 0.5, 0.5))  # Adjusted margins
+
 for (col in columns_to_transform) {
   boxplot(
     data[[col]],
     horizontal=TRUE,
     main=paste("Boxplot of", col),
     col="lightblue",
-    border="darkblue"
+    border="darkblue",
+    las=1  # Optional: Makes labels horizontal
   )
 }
 ```
 
-The Box-Cox transformation is a robust statistical method that normalizes the data distribution, enhancing its suitability for PCA [@compression2014boxcox]. It is considered best practice to apply such transformations to columns selectively rather than on the entirety of the dataset. Automating this process can be achieved by setting a kurtosis threshold.Additionally, negative values must be carefully managed to ensure the Box-Cox transformation is correctly implemented. 
+:::
+
+---
+
+## Application 1 - Demographic Data 
+### Check Assumptions: Outliers Analysis (continued) 
+
+- The Box-Cox transformation can normalize the data distribution, enhancing its suitability for PCA [@compression2014boxcox].  
+- The transformations create an approximate bell-shaped distribution, reducing outlier effects.  
+- The lambda values indicate minor power adjustments.  
+
+::: {.column width="80%"}  
+
 ```{r}
+#| echo: false
 library(MASS)
 
 box_cox_transform <- function(df, columns) {
@@ -305,20 +332,31 @@ for (i in columns_to_transform) {
   lines(density(data_transform[[i]]), col = "darkred", lwd = 2)
 }
 ```
-The transformations create an approximate bell-shaped distribution, reducing outlier effects. Minor power adjustments, indicated by lambda values, enhance PCA effectiveness without the need for manual outlier removal.  
+
+:::
+
+::: {.column width="20%"}  
+
 ```{r}
+#| echo: false
 lambda_df <- data.frame(
   Lambda = unlist(lambdas)
 )
 print(lambda_df)
 ```
 
+:::
+
 ---
 
-### Correlation Analysis
-A heatmap of the correlation matrix was analyzed to identify highly correlated variables, indicating potential multicollinearity within the dataset. By applying PCA, correlated variables can be transformed into orthogonal components which eliminate multicollinearity. This transformation ensures each principal component captures unique variance, improving the clarity and reliability of modeling.
+## Application 1 - Demographic Data 
+### Correlation Analysis  
+ 
+- While not a complete diagnosis, identifying highly correlated variables can indicate multicollinearity within the dataset (VIF will be looked at later).  
+- This provides insights to the effectiveness of PCA because correlated variables can be transformed into orthogonal components which eliminate multicollinearity.  
 
 ```{r}
+#| echo: false
 library(corrplot)
 
 cor_matrix <- cor(data, use = "complete.obs")  # Handle missing values
@@ -338,3 +376,5 @@ corrplot(abs(cor_matrix), method = "color",
          bg = "white"
 )
 ```
+
+---

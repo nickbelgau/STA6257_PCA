@@ -123,7 +123,11 @@ library(car)
 
 ### Dataset Description
 
-The dataset contains demographic, health, and environmental metrics for counties in the United States from US census data. Each row represents data for a specific county of a state [@tejada_vera_2013] [@amin_2018]. The columns analyzed were:  
+The dataset contains demographic, health, and environmental metrics for counties in the United States from US census data. Each row represents data for a specific county of a state [@tejada_vera_2013] [@amin_2018].  
+
+![](figures/highlighted_states.png)  
+
+The columns analyzed were:  
 - obesity_age_adj: Age-adjusted obesity rate.  
 - Smoking_Rate: Rate of smoking within the population.  
 - Diabetes: Diabetes prevalence rate.  
