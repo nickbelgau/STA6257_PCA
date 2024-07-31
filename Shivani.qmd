@@ -39,6 +39,7 @@ data <- read.csv(url, header=TRUE, stringsAsFactors=FALSE)
 str(data)
 #summary(data)
 
+
 data_omit_usrda <- data %>% dplyr::select(-contains('_USRDA'))
 
 str(data_omit_usrda)
@@ -48,6 +49,12 @@ data_numeric <- data_omit_usrda %>% dplyr::select(where(is.numeric))
 cor(data_numeric)
 
 head(data_numeric, 15)
+
+
+corrs <- cor(data_numeric)
+corrsdf <- as.data.frame(as.table(corrs))
+corrsdf <- corrsdf %>% filter(Freq > 0.9 & Var1 != Var2)
+head(corrsdf, 15)
 
 
 df <- data_numeric %>% column_to_rownames('ID')
@@ -63,7 +70,6 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(tibble)
-
 
 df_new %>% gather() %>% ggplot(aes(value)) + 
   geom_histogram(bins=50) + 

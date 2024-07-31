@@ -1,154 +1,193 @@
 ---
 title: "Shivani_PCA_Presentation"
 author: "Shivani"
-format: revealjs
+format:
+  revealjs:
+    toc: true
+    smaller: true
+    progress: true
+    slide-number: true
+    width: 1280
+    height: 960
 editor: visual
 ---
 
-## Introduction
+### Dataset Description
 
-Principal Component Analysis (PCA) is a statistical technique used for dimensionality reduction. It transforms the data into a new coordinate system where the greatest variance comes to lie on the first coordinate (principal component), the second greatest variance on the second coordinate, and so on.
+-   The USDA National Nutrient Database for Standard Reference (SR) is the major source of food composition data in the United States.
 
-------------------------------------------------------------------------
+-   It provides the foundation for most food composition databases in the public and private sectors.
 
-## Dataset
+-   As information is updated, new versions of the database are released.
 
-Source: Data.World Description: Each record represents 100 grams of food items. Nutrients measured in:
+-   Each record is for 100 grams.
 
--   Grams (g)
--   Milligrams (mg)
--   Micrograms (mcg)
--   Percentage of US Recommended Daily Allowance (USRDA)
+-   The nutrient columns end with the units, so: Nutrient_g is in grams Nutrient_mg is in milligrams Nutrient_mcg is in micrograms Nutrient_USRDA is in percentage of US Recommended Daily Allows (e.g. 0.50 is 50%)
 
-------------------------------------------------------------------------
+---
 
-### Data Preparation
+### Load Data and transform if needed
 
-1.  **Install Required Libraries**
+- Load data
+- Transform dataset removing NULLs and any non numerical features
 
-    ``` r
-    #install.packages("MASS")
-    library(MASS)
-    library(factoextra)
-    library(ggplot2)
-    library(readr)
-    library(dplyr)
-    library(caret)
-    library(tibble)
-    ```
+```{r}
+library(MASS)
+library(factoextra)
+library(ggplot2)
+library(readr)
 
-2.  **Load Data**
+library(dplyr)
+library(caret)
+library(tibble)
 
-    ``` r
-    url <- "https://query.data.world/s/ll77ildgnhhove7mlker3g2jw7z5qr?dws=00000"
-    data <- read.csv(url, header=TRUE, stringsAsFactors=FALSE)
-    ```
+url <- "https://query.data.world/s/ll77ildgnhhove7mlker3g2jw7z5qr?dws=00000"
+data <- read.csv(url, header=TRUE, stringsAsFactors=FALSE)
+#str(data)
+#summary(data)
+data_omit_usrda <- data %>% dplyr::select(-contains('_USRDA'))
 
-3.  **Data Structure**
+#str(data_omit_usrda)
 
-    ``` r
-    str(data)
-    ```
+data_numeric <- data_omit_usrda %>% dplyr::select(where(is.numeric))
 
-4.  **Remove USRDA Columns**
+df <- data_numeric %>% column_to_rownames('ID')
+df_desc <- df[, 1:6]
+data_numeric <- df[, -c(1:6)]
 
-    ``` r
-    data_omit_usrda <- data %>% dplyr::select(-contains('_USRDA'))
-    str(data_omit_usrda)
-    ```
 
-5.  **Select Numeric Data**
+print(data_numeric, 15)
 
-    ``` r
-    data_numeric <- data_omit_usrda %>% dplyr::select(where(is.numeric))
-    ```
+```
+---
 
-------------------------------------------------------------------------
+### Scale Data
 
-### Data Exploration
+```{r}
+data_scaled <- scale(data_numeric)
+cat("mean:", round(mean(data_scaled), 2), "\n")
+cat("standard dev:", round(sd(data_scaled), 2), "\n")
 
--   **Correlation Matrix**
+```
 
-    ``` r
-    cor(data_numeric)
-    ```
 
--   **Histograms of Nutrients**
 
-    ``` r
-    df_new %>% gather() %>% ggplot(aes(value)) + 
-      geom_histogram(bins=50) + 
-      facet_wrap(~key, scales='free') + 
-      theme_minimal()
-    ```
+---
 
-------------------------------------------------------------------------
+### Corelation check
 
-### PCA Implementation
+- Check if features in the data are correlated
 
-1.  **Scale Data**
+- High correlated variables are used for effective PCA  
 
-    ``` r
-    df <- scale(df_new)
-    ```
+```{r}
+cor(data_scaled)
+mean(cor(data_scaled))
 
-2.  **Perform PCA**
 
-    ``` r
-    pca <- prcomp(df, scale = TRUE)
-    ```
+```
 
-3.  **Explained Variance**
+---
 
-    ``` r
-    explained_variance <- pca$sdev^2 / sum(pca$sdev^2)
-    ```
+### PCA
 
-4.  **Plot Explained Variance**
+- Running PCA generated multiple Pricipal components
 
-    ``` r
-    qplot(1:length(pca$sdev^2), pca$sdev^2 / sum(pca$sdev^2), geom="line")
-    ```
+- First few components will be important.
 
-5.  **Principal Components DataFrame**
 
-    ``` r
-    pca_df <- as.data.frame(pca$x[, 1:5])
-    pca_df <- rownames_to_column(pca_df, var = "ID")
-    names(pca_df)[2:6] <- c('c1', 'c2', 'c3', 'c4', 'c5')
-    ```
+```{r}
+pca <- prcomp(data_scaled, scale = TRUE)
+qplot(1:length(pca$sdev^2), pca$sdev^2 / sum(pca$sdev^2), geom="line")
 
-------------------------------------------------------------------------
+explained_variance <- pca$sdev^2 / sum(pca$sdev^2)
+cat(explained_variance, "\n")
+cat(sum(explained_variance[1:7]), "\n")
 
-### Results
 
--   **Explained Variance of Top 5 Components**
+# Print summary of PCA
+#print(pca)
 
-    ``` r
-    cat(sum(explained_variance[1:5]), "\n")  # 63.78%
-    ```
 
--   **Correlation Matrix of Principal Components**
+```
+---
 
-    ``` r
-    round(cor(pca_df[, 2:6]), 5)
-    ```
+### Scree Plot
 
--   **Principal Component Loadings**
+- The scree plot shows the proportion of variance explained by each principal component.
+- This plot helps in deciding how many components to retain for further analysis.
+- First seven components explain most of the variance, (> 70%) 
 
-    ``` r
-    vects <- pca$rotation[, 1:5]
-    one <- sort(vects[, 1], decreasing = TRUE)
-    two <- sort(vects[, 2], decreasing = TRUE)
-    three <- sort(vects[, 3], decreasing = TRUE)
-    four <- sort(vects[, 4], decreasing = TRUE)
-    five <- sort(vects[, 5], decreasing = TRUE)
-    ```
 
-------------------------------------------------------------------------
+```{r}
+# Visualize the PCA results
+fviz_eig(pca, addlabels = TRUE, ylim = c(0, 50))
 
-### Conclusion
+```
 
--   PCA helps in reducing the dimensionality of the dataset while retaining most of the variance.
--   The first few principal components explain a significant portion of the variance in the dataset.
--   This technique is useful for visualizing high-dimensional data and improving the performance of machine learning models.
+---
+
+### Biplot
+
+```{r}
+fviz_pca_biplot(pca, repel = TRUE,
+                col.var = "#2E9FDF", # Variables color
+                col.ind = "#696969"  # Individuals color
+                )
+```
+
+--- 
+
+### Visualization
+
+```{r}
+pca_results <- as.data.frame(pca$x)
+pca_results$FoodGroup <- data$FoodGroup
+plot_top_foodgroups <- function(pca_results, component, n = 10) {
+  top_foodgroups <- pca_results %>%
+    arrange(desc(!!sym(component))) %>%
+    slice(1:n) %>%
+    count(FoodGroup, sort = TRUE)
+  
+  ggplot(top_foodgroups, aes(x = reorder(FoodGroup, n), y = n)) +
+    geom_bar(stat = "identity") +
+    coord_flip() +
+    labs(title = paste("Top Food Groups for", component),
+         x = "Food Group", y = "Count")
+}
+
+# Plotting the top food groups for the first 5 components
+for (i in 1:7) {
+  component <- paste0("PC", i)
+  print(plot_top_foodgroups(pca_results, component))
+}
+
+```
+
+---
+
+### Creating dataset with pricipal components
+
+- Creating dataset with 7 PCs 
+
+```{r}
+pca_df <- as.data.frame(pca$x[, 1:7])
+pca_df <- rownames_to_column(pca_df, var = "ID")
+#summary(pca_df)
+cor(pca_df[, 2:8])
+mean(cor(pca_df[, 2:8]))
+
+```
+
+---
+
+### Summary
+
+
+Top Contributing Food Groups:
+
+- The bar plots for each of the first five principal components indicate which food groups are most influential in each component. This helps in understanding the underlying structure of the data and identifying patterns or groups of foods that are similar in their nutritional profiles.
+
+Dimensionality Reduction:
+
+- By reducing the dataset to a few principal components, this helps in simplifying the dataset while retaining most of the important information.
