@@ -94,9 +94,9 @@ editor:
 
 **SVD is faster and more accurate than eigen-decomposition**  
 
-- To reduce the dataset, some linear algebra is required
+- To reduce the dataset, some linear algebra is required.  
 
-- Although PCA is traditionally taught through eigen-decomposition of the covariance matrix, Singular Value Decomposition (SVD) is always used in practice because it elminates the calculate and handle the covariance matrix.  
+- Although PCA is traditionally taught using eigen-decomposition of the covariance matrix, Singular Value Decomposition (SVD) is always used in practice because it eliminates the need to calculate and handle the covariance matrix.  
 
 - Numerical stability.  
 
@@ -519,6 +519,7 @@ importance
  - The first four components might be a sufficient summary of the data.
 
 ```{r}
+#| echo: false
 plot(pca_result, type = "l", col = "#215B9D", lwd = 2)
 ```
 
@@ -775,9 +776,7 @@ model_cnn = Sequential([
 
 ---
 
-## Model Evaluation  
-
-- Evaluations on test data.  
+## Model Evaluation on Test Data  
 
 - Prediction time was 5x faster than the SVM with PCA model and with a model size of 2.6 MB and accuracy over over 70%.  
 
