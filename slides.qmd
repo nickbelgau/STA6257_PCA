@@ -495,8 +495,10 @@ pca_result <- prcomp(data_transform, center=TRUE, scale.=TRUE)
 ```
 
 - What's more important - info retention or dimensionality reduction?  
-- Common practice is to aim for 70-95%, but depends on the application.    
-- The first few components should capture the majority of variance:  
+
+- Common practice is to aim for 70-95%, but depends on the application.   
+
+- Kaiser-Guttman rule: retain components with eigenvalues > 1.0.   
 
 ```{r}
 #| echo: false
@@ -510,19 +512,20 @@ importance <- importance[, c("Std Dev", "Eigenvalues", "Proportion", "Cumulative
 importance
 ```
 
+[@johnson2023applied]
 
 ---
 
 ## Scree Plot
 
  - Elbow at PC4, indicating a point of diminishing returns.  
+
  - The first four components might be a sufficient summary of the data.
 
 ```{r}
 #| echo: false
 plot(pca_result, type = "l", col = "#215B9D", lwd = 2)
 ```
-
 
 ---
 
