@@ -51,30 +51,30 @@ While different methods can be used to determine the principal components, Singu
 1. **Standardize the data**  
    Ensure each variable contributes equally by having a mean of zero and variance of one. This requires that the variables are continuous.
    $$
-   X_{\text{standardized}} = \frac{X - \mu}{\sigma}
+   X_\text{standardized} = \frac{X - \mu}{\sigma}
    $$
    $\mu$: mean, $\sigma$: standard deviation of each variable
 
 2. **Perform Singular Value Decomposition (SVD)**  
   Decompose the standardized data matrix into three matrices $U$, $\Sigma$, and $V^T$.
   $$
-  X_{standardized} = U \Sigma V^T
+  X_\text{standardized} = U \Sigma V^T
   $$
   $𝑈$ and $V^T$ are orthogonal matrices, so therefore $U$ and $V$ are also orthogonal. The diagonal matrix of singular values is represented by $\sigma$ with values $\sigma_i$ that are naturally sorted in descending order. Each column of $𝑉$ represents a principal component (PC) which are orthogonal to each other in the transformed feature space. The number of PC's initially generated are equivalent to the number of variables initially provided in the dataset.
 
 3. **Selection of principal components**  
   The explained variance of each PC is represented by:
   $$
-  {\text{variance_explained}} = \frac{\sigma_i^2}{\sum \sigma_i^2}
+  \text{variance explained} = \frac{\sigma_i^2}{\sum \sigma_i^2}
   $$
   For each singular value $\sigma_i$ in the matrix of singular values $\Sigma$, compute $\sigma_i^2$ and calculate the individual variance. The cumulative explained variance target is specified (typically 95%) as a criteria for PC selection. Determine the number of components needs to reach the desired cumulative explained variance.
 
 4. **Transform the data**  
   Project the data onto the selected principal components. This yields the new subspace with reduced dimensions.
   $$
-  X_{transformed} = X_{standardized} V^T_{selected}
+  X_\text{transformed} = X_\text{standardized} V^T_\text{selected}
   $$
-  where $V_{\text{selected}}$ contains the first number of components columns of $V$. Once the data is transformed onto the selected PC's, it is effectively reduced in dimensionality while retaining most of its original variability.
+  where $V_\text{selected}$ contains the first number of components columns of $V$. Once the data is transformed onto the selected PC's, it is effectively reduced in dimensionality while retaining most of its original variability.
 
 
 

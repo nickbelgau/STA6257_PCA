@@ -3298,20 +3298,20 @@ window.Quarto = {
 <ol type="1">
 <li><p><strong>Standardize the data</strong><br>
 Ensure each variable contributes equally by having a mean of zero and variance of one. This requires that the variables are continuous. <span class="math display">\[
-X_{\text{standardized}} = \frac{X - \mu}{\sigma}
+X_\text{standardized} = \frac{X - \mu}{\sigma}
 \]</span> <span class="math inline">\(\mu\)</span>: mean, <span class="math inline">\(\sigma\)</span>: standard deviation of each variable</p></li>
 <li><p><strong>Perform Singular Value Decomposition (SVD)</strong><br>
 Decompose the standardized data matrix into three matrices <span class="math inline">\(U\)</span>, <span class="math inline">\(\Sigma\)</span>, and <span class="math inline">\(V^T\)</span>. <span class="math display">\[
-  X_{standardized} = U \Sigma V^T
+  X_\text{standardized} = U \Sigma V^T
   \]</span> <span class="math inline">\(𝑈\)</span> and <span class="math inline">\(V^T\)</span> are orthogonal matrices, so therefore <span class="math inline">\(U\)</span> and <span class="math inline">\(V\)</span> are also orthogonal. The diagonal matrix of singular values is represented by <span class="math inline">\(\sigma\)</span> with values <span class="math inline">\(\sigma_i\)</span> that are naturally sorted in descending order. Each column of <span class="math inline">\(𝑉\)</span> represents a principal component (PC) which are orthogonal to each other in the transformed feature space. The number of PC’s initially generated are equivalent to the number of variables initially provided in the dataset.</p></li>
 <li><p><strong>Selection of principal components</strong><br>
 The explained variance of each PC is represented by: <span class="math display">\[
-  {\text{variance_explained}} = \frac{\sigma_i^2}{\sum \sigma_i^2}
+  \text{variance explained} = \frac{\sigma_i^2}{\sum \sigma_i^2}
   \]</span> For each singular value <span class="math inline">\(\sigma_i\)</span> in the matrix of singular values <span class="math inline">\(\Sigma\)</span>, compute <span class="math inline">\(\sigma_i^2\)</span> and calculate the individual variance. The cumulative explained variance target is specified (typically 95%) as a criteria for PC selection. Determine the number of components needs to reach the desired cumulative explained variance.</p></li>
 <li><p><strong>Transform the data</strong><br>
 Project the data onto the selected principal components. This yields the new subspace with reduced dimensions. <span class="math display">\[
-  X_{transformed} = X_{standardized} V^T_{selected}
-  \]</span> where <span class="math inline">\(V_{\text{selected}}\)</span> contains the first number of components columns of <span class="math inline">\(V\)</span>. Once the data is transformed onto the selected PC’s, it is effectively reduced in dimensionality while retaining most of its original variability.</p></li>
+  X_\text{transformed} = X_\text{standardized} V^T_\text{selected}
+  \]</span> where <span class="math inline">\(V_\text{selected}\)</span> contains the first number of components columns of <span class="math inline">\(V\)</span>. Once the data is transformed onto the selected PC’s, it is effectively reduced in dimensionality while retaining most of its original variability.</p></li>
 </ol>
 </section>
 <section id="assumptions-and-practical-testing" class="level3">
@@ -4503,8 +4503,8 @@ SUNLIGHT         -0.11906414 -0.07901314  0.56599160  0.059355967</code></pre>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>          Model  Accuracy  Prediction Time (s), n=100
-0           SVM     0.536                       11.14
-1  SVM with PCA     0.533                        1.15</code></pre>
+0           SVM     0.536                       11.51
+1  SVM with PCA     0.533                        1.13</code></pre>
 </div>
 </div>
 <p>The results show that the PCA model achieved similar accuracy but significantly reduced the prediction time. This demonstrates the effectiveness of dimensionality reduction in speeding up predictions without compromising accuracy. However, the accuracy remains quite low, so modern neural networks were analyzed next.</p>
@@ -4628,10 +4628,10 @@ SUNLIGHT         -0.11906414 -0.07901314  0.56599160  0.059355967</code></pre>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>          Model  Accuracy  Prediction Time (s), n=100  Model Size (MB)
-0           SVM     0.536                       11.14            894.7
-1  SVM with PCA     0.533                        1.15             65.2
-2           CNN     0.705                        0.20              2.6
-3     CNN Tuned     0.736                        0.17             10.1</code></pre>
+0           SVM     0.536                       11.51            894.7
+1  SVM with PCA     0.533                        1.13             65.2
+2           CNN     0.705                        0.18              2.6
+3     CNN Tuned     0.736                        0.14             10.1</code></pre>
 </div>
 </div>
 <p>The results show that the CNN outperforms both SVM models in accuracy and prediction time. In particular, the prediction time was nearly 5x faster than the SVM with PCA model; and with a model size of 2.6 MB, the CNN is small enough to be deployed directly on smart devices for edge computing. These qualities make CNNs a great choice for real-time image classification. The preservation of spatial complexities explains the higher accuracy of over 70%. The tuned CNN performed even better at 73.6% accuracy but with a model size of 10.1 MB which is still acceptable for deployment onto smart devices. It should be noted that real-world applications will likely feature higher dimensional data than that of the CIFAR-10 dataset.</p>
