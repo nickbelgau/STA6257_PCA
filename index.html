@@ -3285,6 +3285,7 @@ window.Quarto = {
 <p>As with every technique, PCA has a few inherent limitations. It assumes linearity which means that if nonlinear relationships exist, PCA will not as effective because it may fail to capture the underlying structure in the data. However, modern variations such as Kernal PCA seeks to address this <span class="citation" data-cites="marukatat2023tutorial">(<a href="#ref-marukatat2023tutorial" role="doc-biblioref">Marukatat 2023</a>)</span>. Interpretability is another considerable downside because the resulting principal components are combinations of the original variables, but interpretting the loadings can be helpful in this effort. PCA is also sensitive to outliers, which can affect the quality of dimensionality reduction. However, there have been improvements to address outlier sensitivity such as Robust PCA which decomposes the data into a low-rank matrix and sparse matrix to separate signal and noise <span class="citation" data-cites="bharadiya2023tutorial">(<a href="#ref-bharadiya2023tutorial" role="doc-biblioref">Bharadiya 2023</a>)</span>.</p>
 <p>Another application of PCA is image compression and classification. However, in real-world applications, PCA has largely been supplanted by more advanced methods. For example, popular compression algorithms like JPEG are more effective for image compression. In the realm of image classification, while PCA can enhance the performance of traditional machine learning algorithms <span class="citation" data-cites="ali2024dimensionality">(<a href="#ref-ali2024dimensionality" role="doc-biblioref">Ali, Wassif, and Bayomi 2024</a>)</span>, modern techniques predominantly favor Convolutional Neural Networks (CNNs). CNNs are especially advantageous because they preserve spatial relationships between pixels unlike PCA and can be significantly more lightweight, allowing for deployment directly on smart devices for edge computing. Understanding when not to use PCA can provide valuable guidance in selecting the most appropriate methods for specific data science challenges.</p>
 <p>Despite these advancements, PCA remains crucial in data science for its ability to simplify complex datasets. It offers a powerful tool for improving model performance, reducing noise, and uncovering hidden patterns, making it indispensable for efficient and insightful data analysis. However, it is essential to understand the contexts in which PCA is not the best choice and to consider alternative methods where they are more suitable.</p>
+<p>In this paper, several applications are explored such as using PCA with tabular datasets and evaluating impact of PCA on machine learning models with image data. In particular, the accuracy and prediction speed of a traditional model (SVM) is compared to data where PCA has been applied. Then, a modern CNN model is compared which does not have PCA applied. The results help infere feasibility to real-world IoT applications where the model can be deployed directly on an edge-device. These comparisons help highlight when PCA may or may not be the best tool for the job.</p>
 </section>
 <section id="methods" class="level2">
 <h2 class="anchored" data-anchor-id="methods">Methods</h2>
@@ -4502,8 +4503,8 @@ SUNLIGHT         -0.11906414 -0.07901314  0.56599160  0.059355967</code></pre>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>          Model  Accuracy  Prediction Time (s), n=100
-0           SVM     0.536                       11.13
-1  SVM with PCA     0.533                        1.05</code></pre>
+0           SVM     0.536                       11.57
+1  SVM with PCA     0.533                        1.13</code></pre>
 </div>
 </div>
 <p>The results show that the PCA model achieved similar accuracy but significantly reduced the prediction time. This demonstrates the effectiveness of dimensionality reduction in speeding up predictions without compromising accuracy. However, the accuracy remains quite low, so modern neural networks were analyzed next.</p>
@@ -4581,7 +4582,7 @@ SUNLIGHT         -0.11906414 -0.07901314  0.56599160  0.059355967</code></pre>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 1/4 [======&gt;.......................] - ETA: 0s
-4/4 [==============================] - 0s 5ms/step</code></pre>
+4/4 [==============================] - 0s 6ms/step</code></pre>
 </div>
 <details class="code-fold">
 <summary>Code</summary>
@@ -4627,10 +4628,10 @@ SUNLIGHT         -0.11906414 -0.07901314  0.56599160  0.059355967</code></pre>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>          Model  Accuracy  Prediction Time (s), n=100  Model Size (MB)
-0           SVM     0.536                       11.13            894.7
-1  SVM with PCA     0.533                        1.05             65.2
-2           CNN     0.705                        0.19              2.6
-3     CNN Tuned     0.736                        0.14             10.1</code></pre>
+0           SVM     0.536                       11.57            894.7
+1  SVM with PCA     0.533                        1.13             65.2
+2           CNN     0.705                        0.20              2.6
+3     CNN Tuned     0.736                        0.15             10.1</code></pre>
 </div>
 </div>
 <p>The results show that the CNN outperforms both SVM models in accuracy and prediction time. In particular, the prediction time was nearly 5x faster than the SVM with PCA model; and with a model size of 2.6 MB, the CNN is small enough to be deployed directly on smart devices for edge computing. These qualities make CNNs a great choice for real-time image classification. The preservation of spatial complexities explains the higher accuracy of over 70%. The tuned CNN performed even better at 73.6% accuracy but with a model size of 10.1 MB which is still acceptable for deployment onto smart devices. It should be noted that real-world applications will likely feature higher dimensional data than that of the CIFAR-10 dataset.</p>
