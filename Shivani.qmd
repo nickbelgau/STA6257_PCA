@@ -1,0 +1,123 @@
+---
+title: "Principal Component Analysis"
+author: "Shivani"
+format: html
+course: STA 6257 - Advanced Statistical Modeling
+editor: visual
+---
+
+**Dataset**
+
+Each record is for 100 grams.
+
+The nutrient columns end with the units, so:
+
+Nutrient_g is in grams Nutrient_mg is in milligrams Nutrient_mcg is in micrograms Nutrient_USRDA is in percentage of US Recommended Daily Allows (e.g. 0.50 is 50%)
+
+#Install Libraries
+
+```{r}
+#install.packages("devtools")
+#library(devtools)
+#install_version("MASS", version = "7.3-60")  # Replace with a compatible version
+
+#install.packages("MASS")
+```
+
+```{r}
+library(MASS)
+library(factoextra)
+library(ggplot2)
+library(readr)
+
+library(dplyr)
+library(caret)
+library(tibble)
+
+url <- "https://query.data.world/s/ll77ildgnhhove7mlker3g2jw7z5qr?dws=00000"
+data <- read.csv(url, header=TRUE, stringsAsFactors=FALSE)
+str(data)
+#summary(data)
+
+
+data_omit_usrda <- data %>% dplyr::select(-contains('_USRDA'))
+
+str(data_omit_usrda)
+
+data_numeric <- data_omit_usrda %>% dplyr::select(where(is.numeric))
+
+cor(data_numeric)
+
+head(data_numeric, 15)
+
+
+corrs <- cor(data_numeric)
+corrsdf <- as.data.frame(as.table(corrs))
+corrsdf <- corrsdf %>% filter(Freq > 0.9 & Var1 != Var2)
+head(corrsdf, 15)
+
+
+df <- data_numeric %>% column_to_rownames('ID')
+df_desc <- df[, 1:6]
+df_new <- df[, -c(1:6)]
+
+
+```
+
+```{r}
+#install.packages("tidyr")
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(tibble)
+
+df_new %>% gather() %>% ggplot(aes(value)) + 
+  geom_histogram(bins=50) + 
+  facet_wrap(~key, scales='free') + 
+  theme_minimal()
+```
+
+```{r}
+df <- scale(df_new)
+cat("mean:", round(mean(df), 2), "\n")
+cat("standard dev:", round(sd(df), 2), "\n")
+
+```
+```{r}
+pca <- prcomp(df, scale = TRUE)
+qplot(1:length(pca$sdev^2), pca$sdev^2 / sum(pca$sdev^2), geom="line")
+
+explained_variance <- pca$sdev^2 / sum(pca$sdev^2)
+cat(explained_variance, "\n")
+cat(sum(explained_variance[1:5]), "\n")
+
+
+```
+
+```{r}
+pca_df <- as.data.frame(pca$x[, 1:5])
+pca_df <- rownames_to_column(pca_df, var = "ID")
+#pca_df <- left_join(pca_df, df_desc, by="ID")
+#pca_df <- pca_df %>% select(-CommonName, -MfgName, -ScientificName)
+names(pca_df)[2:6] <- c('c1', 'c2', 'c3', 'c4', 'c5')
+names(pca_df)
+round(cor(pca_df[, 2:6]), 5)
+
+```
+
+```{r}
+vects <- pca$rotation[, 1:5]
+
+one <- sort(vects[, 1], decreasing = TRUE)
+two <- sort(vects[, 2], decreasing = TRUE)
+three <- sort(vects[, 3], decreasing = TRUE)
+four <- sort(vects[, 4], decreasing = TRUE)
+five <- sort(vects[, 5], decreasing = TRUE)
+
+```
+
+
+
+
+
+
