@@ -124,6 +124,7 @@ stats::prcomp()
 ### SVD Algorithm  
 
 **Decomposition**  
+
 - Ensure features are continuous and standardized ($\mu$ = 0, $\sigma$ = 1), then decompose the $X$ data:
 $$
 X = U \Sigma V^T
@@ -132,14 +133,18 @@ $$
 - Each column of $𝑉$ represents a principal component (PC) which are orthogonal to each other and on the new axes. 
 
 **Calculate explained variance**  
+
 - The diagonal singular value matrix $\Sigma$ corresponds to the strength of each PC:  
 $$
 \text{variance_explained} = \frac{\sigma_i^2}{\sum \sigma_i^2}
 $$
 
 **Dimensionality reduction:**  
+
 - Select PCs based on cumulative explained variance target (95%) and truncate $V$.  
-- Transform $X$ into the new feature space, effectively reducing the dimensions:
+
+- Transform $X$ into the new feature space, effectively reducing the dimensions:  
+
   $$
   X_{\text{transformed}} = X V^{T}_{\text{selected}}
   $$
@@ -149,16 +154,21 @@ $$
 
 The effectiveness of PCA relies on satisfying these points:  
 
- 1. **Linearity**  
+**1. Linearity**  
 
-- PCA assumes that resulting principal components are linear combinations of the original variables. Nonlinear relationships may lead to low covariance values which can lead to an undervalued representation of their signficance.  
+- PCA assumes that resulting PCs are linear combinations of the original variables. 
 
- 2. **Continuous data**  
+- Nonlinear relationships may lead to under-representation of signficance.  
+
+
+**2. Continuous data**  
+
 - Standardizing the data requires continuous features.  
 
 - Handle categorical variables separately.  
 
- 3. **Data standardization**  
+**3. Data standardization**  
+
 - Scaling standardizes the variance of each variable to ensure equal contributions.  
 
 - Mean-centering has a similar impact: ensuring PCs capture the direction of maximum variance.  
