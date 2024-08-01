@@ -1,3 +1,4 @@
+
 ---
 title: "Practical Implementations of Principal Component Analysis"
 author: "Nick Belgau, Oscar Hernandez Mata"
@@ -607,6 +608,8 @@ biplot_figure
 - After flattening, PCA was applied to retain 95% of the explained variance.
 
 ```{python}
+pip install tensorflow
+
 #| echo: false
 import tensorflow as tf
 from sklearn.model_selection import train_test_split

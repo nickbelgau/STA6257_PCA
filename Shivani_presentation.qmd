@@ -1,16 +1,26 @@
 ---
-title: "Shivani_PCA_Presentation"
-author: "Shivani"
+title: "Practical Implementations of Principal Component Analysis"
+author: "Nick Belgau, Oscar Hernandez Mata , Shivani"
+date: "2024-08-01"
 format:
   revealjs:
-    toc: true
-    smaller: true
+    # smaller: true
     progress: true
     slide-number: true
     width: 1280
-    height: 960
-editor: visual
+    height: 960  
+course: STA 6257 - Advanced Statistical Modeling
+bibliography: references.bib # file contains bibtex for references
+self-contained: true
+execute: 
+  echo: true
+  warning: false
+  message: false
+editor: 
+  markdown: 
+    wrap: 72
 ---
+### Application 3 - PCA on USDA National Nutrient data {.smaller}
 
 ### Dataset Description
 
@@ -24,13 +34,15 @@ editor: visual
 
 -   The nutrient columns end with the units, so: Nutrient_g is in grams Nutrient_mg is in milligrams Nutrient_mcg is in micrograms Nutrient_USRDA is in percentage of US Recommended Daily Allows (e.g. 0.50 is 50%)
 
----
+------------------------------------------------------------------------
 
 ### Load Data and transform if needed
 
-- Load data
-- Transform dataset removing NULLs and any non numerical features
-- Removing redundant data.
+-   Load data
+
+-   Transform dataset removing NULLs and any non numerical features
+
+-   Removing features with redundant data. _usrda field in the dataset are redundant.
 
 ```{r}
 library(MASS)
@@ -63,12 +75,12 @@ print(data_numeric, 15)
 
 ```
 
----
+------------------------------------------------------------------------
 
-### Pre Processing data
+### Scale data
 
-- Scale data to center and/or scale the columns of a numeric dataframe.
-- Standardize variables to have a mean of zero and a standard deviation of one
+-   Scale data to center and/or scale the columns of a numeric dataframe.
+-   Standardize variables to have a mean of zero and a standard deviation of one
 
 ```{r}
 data_scaled <- scale(data_numeric)
@@ -80,13 +92,14 @@ cat("standard dev:", round(sd(data_scaled), 2), "\n")
 
 ```
 
----
+------------------------------------------------------------------------
 
 ### Corelation check
 
 - Check if features in the data are correlated
 
-- High correlated variables are used for effective PCA  
+- We select variables with high correlation for effective PCA
+
 
 ```{r}
 cor(data_scaled)
@@ -94,13 +107,16 @@ mean(cor(data_scaled))
 
 ```
 
----
+------------------------------------------------------------------------
 
-### PCA
+### Princpal Component Analysis
 
-- Running PCA generated multiple Pricipal components
+- Running PCA generated multiple Principal components
 
-- First few components  will be important.
+- Number of Principal components will be equal to number of variables in the data.    
+
+- First few components will be important.
+
 ```{r}
 pca <- prcomp(data_scaled, scale = TRUE)
 
@@ -120,14 +136,13 @@ cat(explained_variance, "\n")
 cat(sum(explained_variance[1:6]), "\n")
 ```
 
----
+------------------------------------------------------------------------
 
 ### Scree Plot
 
-- The scree plot shows the proportion of variance explained by each principal component.
-- This plot helps in deciding how many components to retain for further analysis.
-- First seven components explain most of the variance, (> 70%) 
-
+-   The scree plot shows the proportion of variance explained by each principal component.
+-   This plot helps in deciding how many components to retain for further analysis.
+-   First seven components explain most of the variance, (\> 70%)
 
 ```{r}
 # Visualize the PCA results
@@ -135,7 +150,7 @@ fviz_eig(pca, addlabels = TRUE, ylim = c(0, 50))
 
 ```
 
----
+------------------------------------------------------------------------
 
 ### Biplot
 
@@ -151,7 +166,7 @@ fviz_pca_biplot(pca, geom.ind = "point", pointsize = 2.5 , col.var = "black" ,
   scale_color_manual(name = "Food Groups", labels = unique(col_unique), values = color_values)
 ```
 
---- 
+------------------------------------------------------------------------
 
 ### Visualization
 
@@ -174,19 +189,13 @@ plot_top_foodgroups <- function(pca_results, component, n = 10) {
          x = "Food Group", y = "Count")
 }
 
-# Plotting the top food groups for the first 2 components
-for (i in 1:2) {
-  component <- paste0("PC", i)
-  print(plot_top_foodgroups(pca_results, component))
-}
-
 ```
 
 ---
 
 ### Creating dataset with pricipal components
 
-- Creating dataset with 7 PCs 
+-   Creating dataset with 7 PCs
 
 ```{r}
 pca_df <- as.data.frame(pca$x[, 1:7])
@@ -203,12 +212,70 @@ fviz_pca_biplot(pca_new, geom.ind = "point", pointsize = 2.5 , col.var = "black"
 
 ---
 
+### Analysis of PCA Components
+
+PC1
+
+```{r}
+  component <- paste0("PC", 1)
+  print(plot_top_foodgroups(pca_results, component))
+
+```
+
+---
+
+### Analysis of PCA Components (Contd)
+
+PC2
+
+```{r}
+  component <- paste0("PC", 2)
+  print(plot_top_foodgroups(pca_results, component))
+
+```
+---
+
+### Analysis of PCA Components (Contd)
+
+
+Foods that are high in: VitC and Manganese
+
+Low in: Niacin_mg Riboflavin_mg
+
+```{r}
+vects <- pca$rotation[, 1:5]
+component_one <- vects[, 1]
+print(sort(component_one, decreasing = TRUE))
+
+```
+
+---
+
+### Analysis of PCA Components (Contd)
+
+Foods that are high in: VitA and VitB12
+
+Low in: Folate and Thiamin
+
+```{r}
+
+component_two <- vects[, 2]
+print(sort(component_two, decreasing = TRUE))
+
+```
+
+
+---
+
 ### Summary
-
-Top Contributing Food Groups:
-
-- The bar plots for each of the first five principal components indicate which food groups are most influential in each component. This helps in understanding the underlying structure of the data and identifying patterns or groups of foods that are similar in their nutritional profiles.
 
 Dimensionality Reduction:
 
-- By reducing the dataset to a few principal components, this helps in simplifying the dataset while retaining most of the important information.
+-   By reducing the dataset to a few principal components, this helps in simplifying the dataset while retaining most of the important information.
+
+Top Contributing Food Groups:
+
+-   The bar plots for each of the first five principal components indicate which food groups are most influential in each component. 
+
+-   This helps in understanding the underlying structure of the data and identifying patterns or groups of foods that are similar in their nutritional profiles.
+
