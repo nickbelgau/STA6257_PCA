@@ -1,6 +1,6 @@
 ---
 title: "Practical Implementations of Principal Component Analysis"
-author: "Nick Belgau, Oscar Hernandez Mata , Shivani"
+author: "Shivani"
 date: "2024-08-01"
 format:
   revealjs:
