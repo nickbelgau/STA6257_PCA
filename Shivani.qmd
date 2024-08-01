@@ -24,6 +24,10 @@ Nutrient_g is in grams Nutrient_mg is in milligrams Nutrient_mcg is in microgram
 #install.packages("MASS")
 ```
 
+**Check for highly correlated features**
+
+Removing _USRD records as the data is redundant and also selecting highly corrrelated data.
+
 ```{r}
 library(MASS)
 library(factoextra)
@@ -51,6 +55,7 @@ cor(data_numeric)
 head(data_numeric, 15)
 
 
+
 corrs <- cor(data_numeric)
 corrsdf <- as.data.frame(as.table(corrs))
 corrsdf <- corrsdf %>% filter(Freq > 0.9 & Var1 != Var2)
@@ -64,6 +69,8 @@ df_new <- df[, -c(1:6)]
 
 ```
 
+Checking features dustribution 
+
 ```{r}
 #install.packages("tidyr")
 library(dplyr)
@@ -76,6 +83,8 @@ df_new %>% gather() %>% ggplot(aes(value)) +
   facet_wrap(~key, scales='free') + 
   theme_minimal()
 ```
+
+**Checking data variance**
 
 ```{r}
 df <- scale(df_new)

@@ -30,6 +30,7 @@ editor: visual
 
 - Load data
 - Transform dataset removing NULLs and any non numerical features
+- Removing redundant data.
 
 ```{r}
 library(MASS)
@@ -43,34 +44,41 @@ library(tibble)
 
 url <- "https://query.data.world/s/ll77ildgnhhove7mlker3g2jw7z5qr?dws=00000"
 data <- read.csv(url, header=TRUE, stringsAsFactors=FALSE)
-#str(data)
-#summary(data)
+str(data)
+summary(data)
+
+```
+
+```{r}
 data_omit_usrda <- data %>% dplyr::select(-contains('_USRDA'))
 
-#str(data_omit_usrda)
+str(data_omit_usrda)
 
 data_numeric <- data_omit_usrda %>% dplyr::select(where(is.numeric))
 
 df <- data_numeric %>% column_to_rownames('ID')
 df_desc <- df[, 1:6]
 data_numeric <- df[, -c(1:6)]
-
-
 print(data_numeric, 15)
 
 ```
+
 ---
 
-### Scale Data
+### Pre Processing data
+
+- Scale data to center and/or scale the columns of a numeric dataframe.
+- Standardize variables to have a mean of zero and a standard deviation of one
 
 ```{r}
 data_scaled <- scale(data_numeric)
+names(data_numeric)
+
+#print(data_scaled)
 cat("mean:", round(mean(data_scaled), 2), "\n")
 cat("standard dev:", round(sd(data_scaled), 2), "\n")
 
 ```
-
-
 
 ---
 
@@ -84,7 +92,6 @@ cat("standard dev:", round(sd(data_scaled), 2), "\n")
 cor(data_scaled)
 mean(cor(data_scaled))
 
-
 ```
 
 ---
@@ -93,23 +100,26 @@ mean(cor(data_scaled))
 
 - Running PCA generated multiple Pricipal components
 
-- First few components will be important.
-
-
+- First few components  will be important.
 ```{r}
 pca <- prcomp(data_scaled, scale = TRUE)
-qplot(1:length(pca$sdev^2), pca$sdev^2 / sum(pca$sdev^2), geom="line")
 
-explained_variance <- pca$sdev^2 / sum(pca$sdev^2)
-cat(explained_variance, "\n")
-cat(sum(explained_variance[1:7]), "\n")
-
-
-# Print summary of PCA
-#print(pca)
+pca$rotation
 
 
 ```
+
+```{r}
+#qplot(1:length(pca$sdev^2), pca$sdev^2 / sum(pca$sdev^2), geom="line")
+
+```
+
+```{r}
+explained_variance <- pca$sdev^2 / sum(pca$sdev^2)
+cat(explained_variance, "\n")
+cat(sum(explained_variance[1:6]), "\n")
+```
+
 ---
 
 ### Scree Plot
@@ -130,19 +140,27 @@ fviz_eig(pca, addlabels = TRUE, ylim = c(0, 50))
 ### Biplot
 
 ```{r}
-fviz_pca_biplot(pca, repel = TRUE,
-                col.var = "#2E9FDF", # Variables color
-                col.ind = "#696969"  # Individuals color
-                )
+
+col_unique <- as.character(data$FoodGroup)
+
+color_values <- setNames(rainbow(length(unique(col_unique))), unique(col_unique))
+
+
+fviz_pca_biplot(pca, geom.ind = "point", pointsize = 2.5 , col.var = "black" ,
+                col.ind =col_unique ,  repel = TRUE)+
+  scale_color_manual(name = "Food Groups", labels = unique(col_unique), values = color_values)
 ```
 
 --- 
 
 ### Visualization
 
+Now let's look at which food groups are highest in each component
+
 ```{r}
 pca_results <- as.data.frame(pca$x)
 pca_results$FoodGroup <- data$FoodGroup
+
 plot_top_foodgroups <- function(pca_results, component, n = 10) {
   top_foodgroups <- pca_results %>%
     arrange(desc(!!sym(component))) %>%
@@ -156,8 +174,8 @@ plot_top_foodgroups <- function(pca_results, component, n = 10) {
          x = "Food Group", y = "Count")
 }
 
-# Plotting the top food groups for the first 5 components
-for (i in 1:7) {
+# Plotting the top food groups for the first 2 components
+for (i in 1:2) {
   component <- paste0("PC", i)
   print(plot_top_foodgroups(pca_results, component))
 }
@@ -173,16 +191,19 @@ for (i in 1:7) {
 ```{r}
 pca_df <- as.data.frame(pca$x[, 1:7])
 pca_df <- rownames_to_column(pca_df, var = "ID")
-#summary(pca_df)
-cor(pca_df[, 2:8])
-mean(cor(pca_df[, 2:8]))
+names(pca_df)
+pca_new <- prcomp(pca_df[, 2:8])
+#cor(pca_df[, 2:8])
+#mean(cor(pca_df[, 2:8]))
+fviz_pca_biplot(pca_new, geom.ind = "point", pointsize = 2.5 , col.var = "black" ,
+                col.ind =col_unique ,  repel = TRUE)+
+  scale_color_manual(name = "Food Groups", labels = unique(col_unique), values = color_values)
 
 ```
 
 ---
 
 ### Summary
-
 
 Top Contributing Food Groups:
 

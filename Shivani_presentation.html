@@ -350,7 +350,7 @@ Shivani
 </ul></li>
 <li>
 <ul>
-<li><a href="#/scale-data" id="/toc-scale-data">Scale Data</a></li>
+<li><a href="#/pre-processing-data" id="/toc-pre-processing-data">Pre Processing data</a></li>
 </ul></li>
 <li>
 <ul>
@@ -400,8 +400,178 @@ Shivani
 <ul>
 <li>Load data</li>
 <li>Transform dataset removing NULLs and any non numerical features</li>
+<li>Removing redundant data.</li>
 </ul>
 <div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>'data.frame':   8618 obs. of  45 variables:
+ $ ID              : int  1001 1002 1003 1004 1005 1006 1007 1008 1009 1010 ...
+ $ FoodGroup       : chr  "Dairy and Egg Products" "Dairy and Egg Products" "Dairy and Egg Products" "Dairy and Egg Products" ...
+ $ ShortDescrip    : chr  "BUTTER,WITH SALT" "BUTTER,WHIPPED,WITH SALT" "BUTTER OIL,ANHYDROUS" "CHEESE,BLUE" ...
+ $ Descrip         : chr  "Butter, salted" "Butter, whipped, with salt" "Butter oil, anhydrous" "Cheese, blue" ...
+ $ CommonName      : chr  "" "" "" "" ...
+ $ MfgName         : chr  "" "" "" "" ...
+ $ ScientificName  : chr  "" "" "" "" ...
+ $ Energy_kcal     : num  717 717 876 353 371 334 300 376 406 387 ...
+ $ Protein_g       : num  0.85 0.85 0.28 21.4 23.24 ...
+ $ Fat_g           : num  81.1 81.1 99.5 28.7 29.7 ...
+ $ Carb_g          : num  0.06 0.06 0 2.34 2.79 0.45 0.46 3.06 1.33 4.78 ...
+ $ Sugar_g         : num  0.06 0.06 0 0.5 0.51 0.45 0.46 0 0.28 0 ...
+ $ Fiber_g         : num  0 0 0 0 0 0 0 0 0 0 ...
+ $ VitA_mcg        : num  684 684 840 198 292 174 241 271 263 233 ...
+ $ VitB6_mg        : num  0.003 0.003 0.001 0.166 0.065 0.235 0.227 0.074 0.049 0.074 ...
+ $ VitB12_mcg      : num  0.17 0.13 0.01 1.22 1.26 1.65 1.3 0.27 0.88 0.83 ...
+ $ VitC_mg         : num  0 0 0 0 0 0 0 0 0 0 ...
+ $ VitE_mg         : num  2.32 2.32 2.8 0.25 0.26 0.24 0.21 0 0.78 0 ...
+ $ Folate_mcg      : num  3 3 0 36 20 65 62 18 26 18 ...
+ $ Niacin_mg       : num  0.042 0.042 0.003 1.016 0.118 ...
+ $ Riboflavin_mg   : num  0.034 0.034 0.005 0.382 0.351 0.52 0.488 0.45 0.434 0.293 ...
+ $ Thiamin_mg      : num  0.005 0.005 0.001 0.029 0.014 0.07 0.028 0.031 0.027 0.046 ...
+ $ Calcium_mg      : num  24 24 4 528 674 184 388 673 675 643 ...
+ $ Copper_mcg      : num  0 0.016 0.001 0.04 0.024 0.019 0.021 0.024 0.056 0.042 ...
+ $ Iron_mg         : num  0.02 0.16 0 0.31 0.43 0.5 0.33 0.64 0.16 0.21 ...
+ $ Magnesium_mg    : num  2 2 0 23 24 20 20 22 27 21 ...
+ $ Manganese_mg    : num  0 0.004 0 0.009 0.012 0.034 0.038 0.021 0.033 0.012 ...
+ $ Phosphorus_mg   : num  24 23 3 387 451 188 347 490 473 464 ...
+ $ Selenium_mcg    : num  1 1 0 14.5 14.5 14.5 14.5 14.5 28.3 14.5 ...
+ $ Zinc_mg         : num  0.09 0.05 0.01 2.66 2.6 2.38 2.38 2.94 3.43 2.79 ...
+ $ VitA_USRDA      : num  0.76 0.76 0.933 0.22 0.324 ...
+ $ VitB6_USRDA     : num  0.001765 0.001765 0.000588 0.097647 0.038235 ...
+ $ VitB12_USRDA    : num  0.07083 0.05417 0.00417 0.50833 0.525 ...
+ $ VitC_USRDA      : num  0 0 0 0 0 0 0 0 0 0 ...
+ $ VitE_USRDA      : num  0.1547 0.1547 0.1867 0.0167 0.0173 ...
+ $ Folate_USRDA    : num  0.0075 0.0075 0 0.09 0.05 ...
+ $ Niacin_USRDA    : num  0.002625 0.002625 0.000188 0.0635 0.007375 ...
+ $ Riboflavin_USRDA: num  0.02615 0.02615 0.00385 0.29385 0.27 ...
+ $ Thiamin_USRDA   : num  0.004167 0.004167 0.000833 0.024167 0.011667 ...
+ $ Calcium_USRDA   : num  0.02 0.02 0.00333 0.44 0.56167 ...
+ $ Copper_USRDA    : num  0.00 1.78e-05 1.11e-06 4.44e-05 2.67e-05 ...
+ $ Magnesium_USRDA : num  0.00476 0.00476 0 0.05476 0.05714 ...
+ $ Phosphorus_USRDA: num  0.03429 0.03286 0.00429 0.55286 0.64429 ...
+ $ Selenium_USRDA  : num  0.0182 0.0182 0 0.2636 0.2636 ...
+ $ Zinc_USRDA      : num  0.008182 0.004545 0.000909 0.241818 0.236364 ...</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       ID         FoodGroup         ShortDescrip         Descrip         
+ Min.   : 1001   Length:8618        Length:8618        Length:8618       
+ 1st Qu.: 8695   Class :character   Class :character   Class :character  
+ Median :14273   Mode  :character   Mode  :character   Mode  :character  
+ Mean   :15468                                                           
+ 3rd Qu.:20051                                                           
+ Max.   :93600                                                           
+  CommonName          MfgName          ScientificName      Energy_kcal   
+ Length:8618        Length:8618        Length:8618        Min.   :  0.0  
+ Class :character   Class :character   Class :character   1st Qu.: 93.0  
+ Mode  :character   Mode  :character   Mode  :character   Median :191.0  
+                                                          Mean   :226.4  
+                                                          3rd Qu.:336.0  
+                                                          Max.   :902.0  
+   Protein_g          Fat_g              Carb_g           Sugar_g     
+ Min.   : 0.000   Min.   :  0.0000   Min.   :  0.000   Min.   : 0.00  
+ 1st Qu.: 2.470   1st Qu.:  0.9925   1st Qu.:  0.040   1st Qu.: 0.00  
+ Median : 8.285   Median :  5.2350   Median :  8.945   Median : 0.37  
+ Mean   :11.524   Mean   : 10.6470   Mean   : 21.819   Mean   : 6.56  
+ 3rd Qu.:19.977   3rd Qu.: 13.9000   3rd Qu.: 32.900   3rd Qu.: 5.30  
+ Max.   :88.320   Max.   :100.0000   Max.   :100.000   Max.   :99.80  
+    Fiber_g          VitA_mcg           VitB6_mg          VitB12_mcg    
+ Min.   : 0.000   Min.   :    0.00   Min.   : 0.00000   Min.   : 0.000  
+ 1st Qu.: 0.000   1st Qu.:    0.00   1st Qu.: 0.03425   1st Qu.: 0.000  
+ Median : 0.300   Median :    1.50   Median : 0.12000   Median : 0.080  
+ Mean   : 2.023   Mean   :   93.97   Mean   : 0.26437   Mean   : 1.225  
+ 3rd Qu.: 2.400   3rd Qu.:   21.00   3rd Qu.: 0.35500   3rd Qu.: 1.298  
+ Max.   :79.000   Max.   :30000.00   Max.   :12.00000   Max.   :98.890  
+    VitC_mg            VitE_mg           Folate_mcg        Niacin_mg      
+ Min.   :   0.000   Min.   :  0.0000   Min.   :   0.00   Min.   :  0.000  
+ 1st Qu.:   0.000   1st Qu.:  0.0000   1st Qu.:   0.00   1st Qu.:  0.382  
+ Median :   0.000   Median :  0.1100   Median :   7.00   Median :  2.100  
+ Mean   :   7.925   Mean   :  0.8723   Mean   :  50.31   Mean   :  3.412  
+ 3rd Qu.:   2.500   3rd Qu.:  0.4500   3rd Qu.:  25.00   3rd Qu.:  5.029  
+ Max.   :2400.000   Max.   :149.4000   Max.   :5881.00   Max.   :127.500  
+ Riboflavin_mg       Thiamin_mg        Calcium_mg        Copper_mcg     
+ Min.   : 0.0000   Min.   : 0.0000   Min.   :   0.00   Min.   : 0.0000  
+ 1st Qu.: 0.0460   1st Qu.: 0.0300   1st Qu.:   9.00   1st Qu.: 0.0300  
+ Median : 0.1500   Median : 0.0775   Median :  19.00   Median : 0.0790  
+ Mean   : 0.2372   Mean   : 0.2099   Mean   :  73.41   Mean   : 0.1722  
+ 3rd Qu.: 0.2600   3rd Qu.: 0.2230   3rd Qu.:  62.00   3rd Qu.: 0.1447  
+ Max.   :17.5000   Max.   :23.3750   Max.   :7364.00   Max.   :15.0500  
+    Iron_mg         Magnesium_mg     Manganese_mg      Phosphorus_mg 
+ Min.   :  0.000   Min.   :  0.00   Min.   :  0.0000   Min.   :   0  
+ 1st Qu.:  0.530   1st Qu.: 10.00   1st Qu.:  0.0000   1st Qu.:  37  
+ Median :  1.330   Median : 20.00   Median :  0.0220   Median : 133  
+ Mean   :  2.697   Mean   : 32.75   Mean   :  0.5044   Mean   : 156  
+ 3rd Qu.:  2.580   3rd Qu.: 29.00   3rd Qu.:  0.2220   3rd Qu.: 216  
+ Max.   :123.600   Max.   :781.00   Max.   :328.0000   Max.   :9918  
+  Selenium_mcg        Zinc_mg         VitA_USRDA        VitB6_USRDA     
+ Min.   :   0.00   Min.   : 0.000   Min.   : 0.00000   Min.   :0.00000  
+ 1st Qu.:   0.10   1st Qu.: 0.230   1st Qu.: 0.00000   1st Qu.:0.02015  
+ Median :   3.90   Median : 0.845   Median : 0.00167   Median :0.07059  
+ Mean   :  12.61   Mean   : 1.970   Mean   : 0.10441   Mean   :0.15551  
+ 3rd Qu.:  21.30   3rd Qu.: 2.700   3rd Qu.: 0.02333   3rd Qu.:0.20882  
+ Max.   :1917.00   Max.   :90.950   Max.   :33.33333   Max.   :7.05882  
+  VitB12_USRDA        VitC_USRDA         VitE_USRDA        Folate_USRDA    
+ Min.   : 0.00000   Min.   : 0.00000   Min.   :0.000000   Min.   : 0.0000  
+ 1st Qu.: 0.00000   1st Qu.: 0.00000   1st Qu.:0.000000   1st Qu.: 0.0000  
+ Median : 0.03333   Median : 0.00000   Median :0.007333   Median : 0.0175  
+ Mean   : 0.51052   Mean   : 0.08806   Mean   :0.058155   Mean   : 0.1258  
+ 3rd Qu.: 0.54062   3rd Qu.: 0.02778   3rd Qu.:0.030000   3rd Qu.: 0.0625  
+ Max.   :41.20417   Max.   :26.66667   Max.   :9.960000   Max.   :14.7025  
+  Niacin_USRDA     Riboflavin_USRDA   Thiamin_USRDA      Calcium_USRDA    
+ Min.   :0.00000   Min.   : 0.00000   Min.   : 0.00000   Min.   :0.00000  
+ 1st Qu.:0.02388   1st Qu.: 0.03538   1st Qu.: 0.02500   1st Qu.:0.00750  
+ Median :0.13125   Median : 0.11539   Median : 0.06458   Median :0.01583  
+ Mean   :0.21322   Mean   : 0.18250   Mean   : 0.17488   Mean   :0.06118  
+ 3rd Qu.:0.31433   3rd Qu.: 0.20000   3rd Qu.: 0.18583   3rd Qu.:0.05167  
+ Max.   :7.96875   Max.   :13.46154   Max.   :19.47917   Max.   :6.13667  
+  Copper_USRDA       Magnesium_USRDA   Phosphorus_USRDA   Selenium_USRDA    
+ Min.   :0.000e+00   Min.   :0.00000   Min.   : 0.00000   Min.   : 0.00000  
+ 1st Qu.:3.333e-05   1st Qu.:0.02381   1st Qu.: 0.05286   1st Qu.: 0.00182  
+ Median :8.778e-05   Median :0.04762   Median : 0.19000   Median : 0.07091  
+ Mean   :1.913e-04   Mean   :0.07797   Mean   : 0.22284   Mean   : 0.22936  
+ 3rd Qu.:1.608e-04   3rd Qu.:0.06905   3rd Qu.: 0.30857   3rd Qu.: 0.38727  
+ Max.   :1.672e-02   Max.   :1.85952   Max.   :14.16857   Max.   :34.85455  
+   Zinc_USRDA     
+ Min.   :0.00000  
+ 1st Qu.:0.02091  
+ Median :0.07682  
+ Mean   :0.17911  
+ 3rd Qu.:0.24546  
+ Max.   :8.26818  </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>'data.frame':   8618 obs. of  30 variables:
+ $ ID            : int  1001 1002 1003 1004 1005 1006 1007 1008 1009 1010 ...
+ $ FoodGroup     : chr  "Dairy and Egg Products" "Dairy and Egg Products" "Dairy and Egg Products" "Dairy and Egg Products" ...
+ $ ShortDescrip  : chr  "BUTTER,WITH SALT" "BUTTER,WHIPPED,WITH SALT" "BUTTER OIL,ANHYDROUS" "CHEESE,BLUE" ...
+ $ Descrip       : chr  "Butter, salted" "Butter, whipped, with salt" "Butter oil, anhydrous" "Cheese, blue" ...
+ $ CommonName    : chr  "" "" "" "" ...
+ $ MfgName       : chr  "" "" "" "" ...
+ $ ScientificName: chr  "" "" "" "" ...
+ $ Energy_kcal   : num  717 717 876 353 371 334 300 376 406 387 ...
+ $ Protein_g     : num  0.85 0.85 0.28 21.4 23.24 ...
+ $ Fat_g         : num  81.1 81.1 99.5 28.7 29.7 ...
+ $ Carb_g        : num  0.06 0.06 0 2.34 2.79 0.45 0.46 3.06 1.33 4.78 ...
+ $ Sugar_g       : num  0.06 0.06 0 0.5 0.51 0.45 0.46 0 0.28 0 ...
+ $ Fiber_g       : num  0 0 0 0 0 0 0 0 0 0 ...
+ $ VitA_mcg      : num  684 684 840 198 292 174 241 271 263 233 ...
+ $ VitB6_mg      : num  0.003 0.003 0.001 0.166 0.065 0.235 0.227 0.074 0.049 0.074 ...
+ $ VitB12_mcg    : num  0.17 0.13 0.01 1.22 1.26 1.65 1.3 0.27 0.88 0.83 ...
+ $ VitC_mg       : num  0 0 0 0 0 0 0 0 0 0 ...
+ $ VitE_mg       : num  2.32 2.32 2.8 0.25 0.26 0.24 0.21 0 0.78 0 ...
+ $ Folate_mcg    : num  3 3 0 36 20 65 62 18 26 18 ...
+ $ Niacin_mg     : num  0.042 0.042 0.003 1.016 0.118 ...
+ $ Riboflavin_mg : num  0.034 0.034 0.005 0.382 0.351 0.52 0.488 0.45 0.434 0.293 ...
+ $ Thiamin_mg    : num  0.005 0.005 0.001 0.029 0.014 0.07 0.028 0.031 0.027 0.046 ...
+ $ Calcium_mg    : num  24 24 4 528 674 184 388 673 675 643 ...
+ $ Copper_mcg    : num  0 0.016 0.001 0.04 0.024 0.019 0.021 0.024 0.056 0.042 ...
+ $ Iron_mg       : num  0.02 0.16 0 0.31 0.43 0.5 0.33 0.64 0.16 0.21 ...
+ $ Magnesium_mg  : num  2 2 0 23 24 20 20 22 27 21 ...
+ $ Manganese_mg  : num  0 0.004 0 0.009 0.012 0.034 0.038 0.021 0.033 0.012 ...
+ $ Phosphorus_mg : num  24 23 3 387 451 188 347 490 473 464 ...
+ $ Selenium_mcg  : num  1 1 0 14.5 14.5 14.5 14.5 14.5 28.3 14.5 ...
+ $ Zinc_mg       : num  0.09 0.05 0.01 2.66 2.6 2.38 2.38 2.94 3.43 2.79 ...</code></pre>
+</div>
 <div class="cell-output cell-output-stdout">
 <pre><code>      VitA_mcg VitB6_mg VitB12_mcg VitC_mg VitE_mg Folate_mcg Niacin_mg
 1001       684    0.003       0.17     0.0    2.32          3     0.042
@@ -18058,8 +18228,19 @@ Shivani
 </section>
 <section class="slide level2">
 
-<h3 id="scale-data">Scale Data</h3>
+<h3 id="pre-processing-data">Pre Processing data</h3>
+<ul>
+<li>Scale data to center and/or scale the columns of a numeric dataframe.</li>
+<li>Standardize variables to have a mean of zero and a standard deviation of one</li>
+</ul>
 <div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "VitA_mcg"      "VitB6_mg"      "VitB12_mcg"    "VitC_mg"      
+ [5] "VitE_mg"       "Folate_mcg"    "Niacin_mg"     "Riboflavin_mg"
+ [9] "Thiamin_mg"    "Calcium_mg"    "Copper_mcg"    "Iron_mg"      
+[13] "Magnesium_mg"  "Manganese_mg"  "Phosphorus_mg" "Selenium_mcg" 
+[17] "Zinc_mg"      </code></pre>
+</div>
 <div class="cell-output cell-output-stdout">
 <pre><code>mean: 0 </code></pre>
 </div>
@@ -18163,15 +18344,90 @@ Zinc_mg        0.205298592 1.00000000</code></pre>
 <li><p>First few components will be important.</p></li>
 </ul>
 <div class="cell">
-
+<div class="cell-output cell-output-stdout">
+<pre><code>                      PC1          PC2         PC3          PC4          PC5
+VitA_mcg      -0.16066077  0.531120309  0.11343260 -0.211356909  0.090653908
+VitB6_mg      -0.33893986 -0.156718701  0.15119351 -0.045831194 -0.016682598
+VitB12_mcg    -0.21508300  0.479179996  0.12885168  0.150724229  0.069756583
+VitC_mg       -0.09963052 -0.057077984  0.07569012 -0.489113914  0.491447061
+VitE_mg       -0.13512856 -0.064786345 -0.03008858 -0.232048655 -0.650149120
+Folate_mcg    -0.30102839 -0.186077273  0.19985694 -0.016800462 -0.092553717
+Niacin_mg     -0.36489500 -0.147649442  0.19416372  0.076834158  0.063932117
+Riboflavin_mg -0.37222654 -0.010622067  0.20562159 -0.005836148  0.191738636
+Thiamin_mg    -0.28686644 -0.212258949  0.18036099  0.039402702  0.036763572
+Calcium_mg    -0.16572924 -0.105356349 -0.52013678 -0.206184471  0.219938524
+Copper_mcg    -0.19601027  0.470112218 -0.10682959  0.020510691  0.008357723
+Iron_mg       -0.30556015 -0.144165721 -0.06420116 -0.043647336 -0.064931226
+Magnesium_mg  -0.22483295 -0.058535266 -0.41377215 -0.115969016 -0.181804525
+Manganese_mg  -0.10192369  0.294594686 -0.06428183 -0.327994358 -0.349245079
+Phosphorus_mg -0.19827855 -0.008667522 -0.55559639  0.114632424  0.179237760
+Selenium_mcg  -0.10276532  0.106758455 -0.13056702  0.590406243  0.052858974
+Zinc_mg       -0.26492115 -0.010766576 -0.03784922  0.319486369 -0.170442336
+                      PC6          PC7         PC8          PC9         PC10
+VitA_mcg       0.07738660  0.005061274 -0.08991204  0.095446969 -0.099175220
+VitB6_mg      -0.23691696  0.026923717 -0.08557524 -0.179957159  0.004065853
+VitB12_mcg    -0.02639270  0.121490320 -0.22904144 -0.050066684 -0.033984266
+VitC_mg       -0.56746736 -0.055676568  0.18844485 -0.048554750 -0.001655054
+VitE_mg       -0.41351239  0.213487023 -0.30625718  0.389504926 -0.016234846
+Folate_mcg     0.22376444  0.023361865  0.02928408  0.088240868 -0.164896375
+Niacin_mg     -0.07457006 -0.138528520 -0.04260164 -0.043840439  0.191941000
+Riboflavin_mg  0.09202811 -0.035413180 -0.09397060  0.168500295  0.027469571
+Thiamin_mg     0.32006583 -0.161465719  0.09126289  0.371312662  0.306116757
+Calcium_mg     0.14534672  0.047640552 -0.43433276 -0.004491522 -0.205086168
+Copper_mcg     0.05527168  0.380921863  0.32875545  0.159533981  0.080241685
+Iron_mg        0.20819891  0.102745674  0.11453876 -0.241920808 -0.662375670
+Magnesium_mg  -0.02352428  0.012138523  0.64524586  0.078159554  0.058679321
+Manganese_mg   0.11532725 -0.702150965 -0.01064402 -0.282495652  0.084256845
+Phosphorus_mg  0.02322392 -0.056868873 -0.22706884  0.082618343  0.357811804
+Selenium_mcg  -0.40276580 -0.437778577  0.07085233  0.278271685 -0.363845143
+Zinc_mg       -0.18300285  0.206824993 -0.01076546 -0.609739718  0.268396444
+                      PC11        PC12        PC13         PC14         PC15
+VitA_mcg       0.088867693  0.01192624 -0.66811058 -0.163142053 -0.021734284
+VitB6_mg       0.367149227 -0.42752184 -0.14101487  0.338713783 -0.433433165
+VitB12_mcg    -0.007830456 -0.16839053  0.62180316  0.027790226 -0.147042602
+VitC_mg       -0.072209890  0.25691631  0.15328030 -0.178993848 -0.088918297
+VitE_mg       -0.144584514  0.05333979  0.02091183 -0.111685087  0.031890120
+Folate_mcg     0.690422784  0.43137683  0.14542356 -0.158269504  0.113741736
+Niacin_mg     -0.111006402 -0.32047233 -0.16693961  0.004797515  0.352772730
+Riboflavin_mg -0.199834691 -0.01998086  0.11029816  0.112261157  0.555609714
+Thiamin_mg    -0.347953784  0.21546347 -0.01705780  0.030385511 -0.533070301
+Calcium_mg    -0.059757706  0.22910033 -0.04605407  0.503103106  0.011756558
+Copper_mcg    -0.017097789  0.12071998  0.02281431  0.153063633 -0.056800465
+Iron_mg       -0.331346196 -0.15875456  0.02065618 -0.378903780 -0.139778843
+Magnesium_mg   0.080293462 -0.18629746  0.04971384  0.172700101  0.148960712
+Manganese_mg  -0.020556903  0.08288254  0.14691790  0.038663251 -0.006818084
+Phosphorus_mg  0.185143654 -0.17171135  0.03265092 -0.563572950 -0.058527289
+Selenium_mcg   0.012164706  0.15379112 -0.08944741  0.075065535 -0.044177874
+Zinc_mg       -0.161748363  0.44417122 -0.15970858 -0.009804622  0.018732813
+                      PC16         PC17
+VitA_mcg       0.331952826  0.040079274
+VitB6_mg      -0.097590865 -0.298610090
+VitB12_mcg     0.344718569  0.228211892
+VitC_mg       -0.012015559  0.050384877
+VitE_mg       -0.003233162  0.008293865
+Folate_mcg    -0.014816000  0.131875909
+Niacin_mg     -0.243524780  0.636680566
+Riboflavin_mg  0.063759562 -0.597232854
+Thiamin_mg     0.116787078  0.047780900
+Calcium_mg     0.003211706  0.185595420
+Copper_mcg    -0.630848447 -0.023115157
+Iron_mg       -0.108147836 -0.033081139
+Magnesium_mg   0.448858436  0.067865814
+Manganese_mg  -0.198812688 -0.076573560
+Phosphorus_mg -0.091602134 -0.149022526
+Selenium_mcg  -0.036562404 -0.013706717
+Zinc_mg        0.153834708 -0.062248538</code></pre>
+</div>
+</div>
+<div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>0.2930688 0.1198824 0.09549825 0.07002664 0.05936574 0.05884348 0.04974859 0.04598911 0.04260001 0.03487972 0.02806789 0.02618918 0.02000957 0.01741139 0.0151895 0.01358304 0.00964677 </code></pre>
 </div>
 <div class="cell-output cell-output-stdout">
-<pre><code>0.7464338 </code></pre>
+<pre><code>0.6966852 </code></pre>
 </div>
 </div>
-<img data-src="Shivani_presentation_files/figure-revealjs/unnamed-chunk-4-1.png" width="960" class="r-stretch"></section>
+</section>
 <section class="slide level2">
 
 <h3 id="scree-plot">Scree Plot</h3>
@@ -18181,62 +18437,28 @@ Zinc_mg        0.205298592 1.00000000</code></pre>
 <li>First seven components explain most of the variance, (&gt; 70%)</li>
 </ul>
 
-<img data-src="Shivani_presentation_files/figure-revealjs/unnamed-chunk-5-1.png" width="960" class="r-stretch"></section>
+<img data-src="Shivani_presentation_files/figure-revealjs/unnamed-chunk-8-1.png" width="960" class="r-stretch"></section>
 <section class="slide level2">
 
 <h3 id="biplot">Biplot</h3>
 
-<img data-src="Shivani_presentation_files/figure-revealjs/unnamed-chunk-6-1.png" width="960" class="r-stretch"></section>
+<img data-src="Shivani_presentation_files/figure-revealjs/unnamed-chunk-9-1.png" width="960" class="r-stretch"></section>
 <section class="slide level2">
 
 <h3 id="visualization">Visualization</h3>
+<p>Now let’s look at which food groups are highest in each component</p>
 <div class="cell">
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="Shivani_presentation_files/figure-revealjs/unnamed-chunk-7-1.png" width="960"></p>
+<p><img data-src="Shivani_presentation_files/figure-revealjs/unnamed-chunk-10-1.png" width="960"></p>
 </figure>
 </div>
 </div>
 <div class="cell-output-display">
 <div>
 <figure>
-<p><img data-src="Shivani_presentation_files/figure-revealjs/unnamed-chunk-7-2.png" width="960"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure>
-<p><img data-src="Shivani_presentation_files/figure-revealjs/unnamed-chunk-7-3.png" width="960"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure>
-<p><img data-src="Shivani_presentation_files/figure-revealjs/unnamed-chunk-7-4.png" width="960"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure>
-<p><img data-src="Shivani_presentation_files/figure-revealjs/unnamed-chunk-7-5.png" width="960"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure>
-<p><img data-src="Shivani_presentation_files/figure-revealjs/unnamed-chunk-7-6.png" width="960"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output-display">
-<div>
-<figure>
-<p><img data-src="Shivani_presentation_files/figure-revealjs/unnamed-chunk-7-7.png" width="960"></p>
+<p><img data-src="Shivani_presentation_files/figure-revealjs/unnamed-chunk-10-2.png" width="960"></p>
 </figure>
 </div>
 </div>
@@ -18250,28 +18472,11 @@ Zinc_mg        0.205298592 1.00000000</code></pre>
 </ul>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>              PC1           PC2           PC3           PC4           PC5
-PC1  1.000000e+00  1.148088e-14 -1.075749e-17 -4.891539e-17  1.023004e-17
-PC2  1.148088e-14  1.000000e+00 -1.177284e-16  5.461222e-16  3.319094e-16
-PC3 -1.075749e-17 -1.177284e-16  1.000000e+00  1.693460e-16 -3.545137e-16
-PC4 -4.891539e-17  5.461222e-16  1.693460e-16  1.000000e+00 -4.284987e-16
-PC5  1.023004e-17  3.319094e-16 -3.545137e-16 -4.284987e-16  1.000000e+00
-PC6 -2.288774e-16 -2.383064e-16 -1.342843e-16  3.833421e-16  1.252127e-16
-PC7 -2.849190e-16  3.674342e-16  1.412957e-16 -4.448843e-16 -4.305760e-16
-              PC6           PC7
-PC1 -2.288774e-16 -2.849190e-16
-PC2 -2.383064e-16  3.674342e-16
-PC3 -1.342843e-16  1.412957e-16
-PC4  3.833421e-16 -4.448843e-16
-PC5  1.252127e-16 -4.305760e-16
-PC6  1.000000e+00  5.741498e-16
-PC7  5.741498e-16  1.000000e+00</code></pre>
+<pre><code>[1] "ID"  "PC1" "PC2" "PC3" "PC4" "PC5" "PC6" "PC7"</code></pre>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] 0.1428571</code></pre>
+
 </div>
-</div>
-</section>
+<img data-src="Shivani_presentation_files/figure-revealjs/unnamed-chunk-11-1.png" width="960" class="r-stretch"></section>
 <section class="slide level2">
 
 <h3 id="summary">Summary</h3>
