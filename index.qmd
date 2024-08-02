@@ -649,6 +649,8 @@ cnn_model_path = 'model/cnn_tf213.keras'
 model_cnn = load_model(cnn_model_path)
 cnn_model_tuned_path = 'model/cnn_tuned_tf213.keras'
 model_cnn_tuned = load_model(cnn_model_tuned_path)
+cnn_model_pca_path = 'model/cnn_pca_tf213.keras'
+model_cnn_pca = load_model(cnn_model_pca_path)
 
 # evaluate accuracy and prediction time for CNN
 test_loss_cnn, test_accuracy_cnn = model_cnn.evaluate(X_test, y_test, verbose=0)
@@ -672,6 +674,17 @@ new_row = pd.DataFrame({
 })
 results = pd.concat([results, new_row], ignore_index=True)
 
+# evaluate accuracy and prediction time for PCA model
+test_loss_cnn, test_accuracy_cnn = model_cnn_pca.evaluate(X_test_pca, y_test.flatten(), verbose=0)
+test_accuracy_cnn = round(test_accuracy_cnn, 3)
+pred_time_cnn = evaluate_prediction_time(model_cnn_pca, X_test_pca)
+new_row = pd.DataFrame({
+    'Model': ['CNN with PCA'],
+    'Accuracy': [test_accuracy_cnn],
+    'Prediction Time (s), n=100': [pred_time_cnn]
+})
+results = pd.concat([results, new_row], ignore_index=True)
+
 
 def get_file_size(file_path):
     size_bytes = os.path.getsize(file_path)
@@ -683,11 +696,12 @@ size_svm = get_file_size(model_svm_path)
 size_svm_pca = get_file_size(model_svm_pca_path)
 size_cnn = get_file_size(cnn_model_path)
 size_cnn_tuned = get_file_size(cnn_model_tuned_path)
-results['Model Size (MB)'] = [size_svm, size_svm_pca, size_cnn, size_cnn_tuned]
+size_cnn_pca = get_file_size(cnn_model_pca_path)
+results['Model Size (MB)'] = [size_svm, size_svm_pca, size_cnn, size_cnn_tuned, size_cnn_pca]
 print(results)
 ```
 
-The results show that the CNN outperforms both SVM models in accuracy and prediction time. In particular, the prediction time was nearly 5x faster than the SVM with PCA model; and with a model size of 2.6 MB, the CNN is small enough to be deployed directly on smart devices for edge computing. These qualities make CNNs a great choice for real-time image classification. The preservation of spatial complexities explains the higher accuracy of over 70%. The tuned CNN performed even better at 73.6% accuracy but with a model size of 10.1 MB which is still acceptable for deployment onto smart devices. It should be noted that real-world applications will likely feature higher dimensional data than that of the CIFAR-10 dataset.
+The results show that the CNN outperforms both SVM models in accuracy and prediction time. In particular, the prediction time was nearly 5x faster than the SVM with PCA model; and with a model size of 2.6 MB, the CNN is small enough to be deployed directly on smart devices for edge computing. These qualities make CNNs a great choice for real-time image classification. The preservation of spatial complexities explains the higher accuracy of over 70%. The tuned CNN performed even better at 73.6% accuracy but with a model size of 10.1 MB which is still acceptable for deployment onto smart devices. The final model is CNN with PCA applied which confirms why PCA is not used with CNNs, as the accuracy is diminished to 50%. It should be noted that real-world applications will likely feature higher dimensional data than that of the CIFAR-10 dataset.
 
 In conclusion, CNNs are superior for certain image classification tasks due to their ability to learn high-level features directly from data, adapt to complex patterns, and perform efficiently in real-time applications. The lightweight nature of CNN models allow for deployment directly on IoT devices, eliminating the need to send data to the cloud for processing. These advantages make CNNs the gold standard for most current image classification tasks, including machine vision applications.
 
